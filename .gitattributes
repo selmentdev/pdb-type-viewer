@@ -1,0 +1,33 @@
+# Auto detect text files and perform LF normalization
+* text eol=lf
+
+# Custom for Visual Studio
+*.cs    diff=csharp
+
+# Standard to msysgit
+*.doc   diff=astextplain
+*.DOC   diff=astextplain
+*.docx  diff=astextplain
+*.DOCX  diff=astextplain
+*.dot   diff=astextplain
+*.DOT   diff=astextplain
+*.pdf   diff=astextplain
+*.PDF   diff=astextplain
+*.rtf   diff=astextplain
+*.RTF   diff=astextplain
+
+# Custom binary files
+*.pf2   binary
+*.pso   binary
+*.vso   binary
+*.dso   binary
+*.gso   binary
+*.hso   binary
+*.cso   binary
+*.dds   binary
+*.e3d   binary
+*.png   binary
+*.ico   binary
+tools/premake/linux-x86_64/premake5 binary
+tools/premake/premake5.exe binary
+tools/premake/linux-aarch64/premake5 binary

@@ -1,32 +1,44 @@
-# Prerequisites
-*.d
-
-# Compiled Object files
-*.slo
-*.lo
-*.o
+# Add any directories, files, or patterns you don't want to be tracked by version control
+*.vcxproj
+*.vcxproj.filters
+*.stamp
+*.stamp.depend
+*.log
+*.tlog
 *.obj
-
-# Precompiled Headers
-*.gch
-*.pch
-
-# Compiled Dynamic libraries
-*.so
-*.dylib
-*.dll
-
-# Fortran module files
-*.mod
-*.smod
-
-# Compiled Static libraries
-*.lai
-*.la
-*.a
-*.lib
-
-# Executables
 *.exe
-*.out
-*.app
+*.ilk
+*.pdb
+*.suo
+*.db
+*.ipch
+*.bin
+*.rule
+*.dll
+*.exp
+*.lib
+*.user
+*.sln
+.vs
+.vscode
+*.html
+.idea/
+*.pyc
+*.aps
+*.mesh
+*.idb
+*.lastbuildstate
+
+# engine generated directories
+bin
+obj
+game/logs
+engine/include/Graphyte/Build.Version.hxx
+Makefile
+*.make
+*.mk
+*.dmp
+*.a
+*.a.recipe
+*.so
+*.so.recipe
