@@ -7,6 +7,7 @@
 #include <optional>
 #include <algorithm>
 #include <map>
+#include <set>
 
 namespace ptv::dia
 {
@@ -765,6 +766,61 @@ namespace ptv::impl
             }
 
 
+            // Try to find paddings
+            std::set<std::pair<uint64_t, uint64_t>> paddings{};
+
+            for (auto const& current : symbols)
+            {
+                std::vector<ptv::pdb_abstract_type_member*> lesser{};
+
+                for (auto const& before : symbols)
+                {
+                    if (before->get_next_offset() <= current->get_offset())
+                    {
+                        lesser.push_back(before.get());
+                    }
+                }
+
+                auto it = std::min_element(
+                    std::begin(lesser),
+                    std::end(lesser),
+                    [&](const ptv::pdb_abstract_type_member* lhs, const ptv::pdb_abstract_type_member* rhs)
+                    {
+                        return (current->get_offset() - lhs->get_next_offset()) < (current->get_offset() - rhs->get_next_offset());
+                    }
+                );
+
+                if (it != std::end(lesser))
+                {
+                    auto const final_offset = (*it)->get_next_offset();
+                    auto const final_padding = current->get_offset() - final_offset;
+
+                    if (final_padding != 0)
+                    {
+                        paddings.insert({ final_padding, final_offset });
+                    }
+                }
+            }
+
+            for (auto const& padding : paddings)
+            {
+                symbols.push_back(std::make_unique<pdb_member_padding>(padding.first, padding.second));
+            }
+
+            std::sort(
+                symbols.begin(),
+                symbols.end(),
+                [](const std::unique_ptr<pdb_abstract_type_member>& lhs, const std::unique_ptr<pdb_abstract_type_member>& rhs) noexcept
+                {
+                    if (lhs->get_offset() == rhs->get_offset())
+                    {
+                        return lhs->get_size() < rhs->get_size();
+                    }
+
+                    return lhs->get_offset() < rhs->get_offset();
+                }
+            );
+
             if (!symbols.empty())
             {
                 if (auto const& last = symbols.back(); last->get_size() != 0)
@@ -774,7 +830,7 @@ namespace ptv::impl
 
                     if (final_padding != 0)
                     {
-                        symbols.push_back(std::make_unique<pdb_member_padding>(final_padding, final_offset));
+                        symbols.push_back(std::make_unique<pdb_member_ending>(final_padding, final_offset));
                     }
                 }
             }
@@ -782,6 +838,7 @@ namespace ptv::impl
             return std::make_unique<pdb_member_inherited>(
                 dia::length(symbol),
                 dia::offset(symbol),
+                type_name,
                 std::move(symbols)
             );
         }

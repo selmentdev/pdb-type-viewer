@@ -1,6 +1,7 @@
 #pragma once
 #include <QAbstractItemModel>
 #include <QTreeView>
+#include <ptv.hxx>
 
 namespace viewer
 {
@@ -70,13 +71,13 @@ namespace viewer
         Q_OBJECT
 
     public:
-        explicit TreeModel(const QString& data, QObject* parent = nullptr)
+        explicit TreeModel(const std::unique_ptr<ptv::pdb_type_descriptor>& descriptor, QObject* parent = nullptr)
             : QAbstractItemModel(parent)
         {
             QList<QVariant> rootData;
-            rootData << "Title" << "Summary";
+            rootData << "Name" << "Size" << "Offset";
             rootItem = new TreeItem(rootData);
-            setupModelData(data.split(QString("\n")), rootItem);
+            setupModelData(descriptor->get_members(), rootItem);
         }
 
         ~TreeModel()
@@ -180,60 +181,62 @@ namespace viewer
         }
 
     private:
-        void setupModelData(const QStringList& lines, TreeItem* parent)
+        void setupModelData(const std::vector<std::unique_ptr<ptv::pdb_abstract_type_member>>& members, TreeItem* parent)
         {
-            QList<TreeItem*> parents;
-            QList<int> indentations;
-            parents << parent;
-            indentations << 0;
-
-            int number = 0;
-
-            while (number < lines.count())
+            for (auto const& member : members)
             {
-                int position = 0;
-                while (position < lines[number].length())
+                QList<QVariant> data{};
+
+                auto const type = member->get_member_type();
+
+                switch (type)
                 {
-                    if (lines[number].at(position) != ' ')
+                case ptv::pdb_member_type::inherited:
+                    {
+                        if (auto detailed = static_cast<ptv::pdb_member_inherited*>(member.get()); detailed != nullptr)
+                        {
+                            auto name = detailed->get_name();
+
+                            data << QString::fromWCharArray(name.data(), static_cast<int>(name.size())) << detailed->get_size() << detailed->get_offset();
+                        }
+
                         break;
-                    position++;
+                    }
+                case ptv::pdb_member_type::field:
+                    {
+                        if (auto detailed = static_cast<ptv::pdb_member_field*>(member.get()); detailed != nullptr)
+                        {
+                            auto name = detailed->get_name();
+
+                            data << QString::fromWCharArray(name.data(), static_cast<int>(name.size())) << detailed->get_size() << detailed->get_offset();
+                        }
+
+                        break;
+                    }
+                case ptv::pdb_member_type::padding:
+                    {
+                        data << "<<padding>>" << member->get_size() << member->get_offset();
+                        break;
+                    }
+                case ptv::pdb_member_type::ending:
+                    {
+                        data << "<<ending>>" << member->get_size() << member->get_offset();
+                        break;
+                    }
                 }
 
-                QString lineData = lines[number].mid(position).trimmed();
+                auto item = new TreeItem(data, parent);
 
-                if (!lineData.isEmpty())
+                if (type == ptv::pdb_member_type::inherited)
                 {
-                    // Read the column data from the rest of the line.
-                    QStringList columnStrings = lineData.split("\t", QString::SkipEmptyParts);
-                    QList<QVariant> columnData;
-                    for (int column = 0; column < columnStrings.count(); ++column)
-                        columnData << columnStrings[column];
-
-                    if (position > indentations.last())
-                    {
-                        // The last child of the current parent is now the new parent
-                        // unless the current parent has no children.
-
-                        if (parents.last()->childCount() > 0)
-                        {
-                            parents << parents.last()->child(parents.last()->childCount() - 1);
-                            indentations << position;
-                        }
-                    }
-                    else
-                    {
-                        while (position < indentations.last() && parents.count() > 0)
-                        {
-                            parents.pop_back();
-                            indentations.pop_back();
-                        }
-                    }
-
-                    // Append a new item to the current parent's list of children.
-                    parents.last()->appendChild(new TreeItem(columnData, parents.last()));
+                    auto detailed = static_cast<ptv::pdb_member_inherited*>(member.get());
+                    setupModelData(
+                        detailed->get_members(),
+                        item
+                    );
                 }
 
-                ++number;
+                parent->appendChild(item);
             }
         }
 
