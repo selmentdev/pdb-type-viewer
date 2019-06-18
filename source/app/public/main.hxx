@@ -1,9 +1,6 @@
-#include <QApplication>
-#include <QWindow>
+#pragma once
 #include <QAbstractItemModel>
 #include <QTreeView>
-#include <ptv.hxx>
-
 
 namespace viewer
 {
@@ -183,40 +180,64 @@ namespace viewer
         }
 
     private:
-        void setupModelData(const QStringList& lines, TreeItem* parent);
+        void setupModelData(const QStringList& lines, TreeItem* parent)
+        {
+            QList<TreeItem*> parents;
+            QList<int> indentations;
+            parents << parent;
+            indentations << 0;
+
+            int number = 0;
+
+            while (number < lines.count())
+            {
+                int position = 0;
+                while (position < lines[number].length())
+                {
+                    if (lines[number].at(position) != ' ')
+                        break;
+                    position++;
+                }
+
+                QString lineData = lines[number].mid(position).trimmed();
+
+                if (!lineData.isEmpty())
+                {
+                    // Read the column data from the rest of the line.
+                    QStringList columnStrings = lineData.split("\t", QString::SkipEmptyParts);
+                    QList<QVariant> columnData;
+                    for (int column = 0; column < columnStrings.count(); ++column)
+                        columnData << columnStrings[column];
+
+                    if (position > indentations.last())
+                    {
+                        // The last child of the current parent is now the new parent
+                        // unless the current parent has no children.
+
+                        if (parents.last()->childCount() > 0)
+                        {
+                            parents << parents.last()->child(parents.last()->childCount() - 1);
+                            indentations << position;
+                        }
+                    }
+                    else
+                    {
+                        while (position < indentations.last() && parents.count() > 0)
+                        {
+                            parents.pop_back();
+                            indentations.pop_back();
+                        }
+                    }
+
+                    // Append a new item to the current parent's list of children.
+                    parents.last()->appendChild(new TreeItem(columnData, parents.last()));
+                }
+
+                ++number;
+            }
+        }
 
         TreeItem* rootItem;
     };
 }
 
-
-
-
-
-
-int main(int argc, char* argv[])
-{
-    QApplication app(argc, argv);
-    QCoreApplication::setOrganizationName("Graphyte");
-    QCoreApplication::setApplicationName("Pdb Type Viewer");
-    QCoreApplication::setApplicationVersion(QT_VERSION_STR);
-
-
-    viewer::TreeModel model{""};
-
-    QTreeView view{};
-    view.setModel(&model);
-    view.setWindowTitle("model");
-    view.show();
-
-    auto session = ptv::create();
-    session->load(LR"(D:\github\engine-concept\build\release-windows-x64\bin\Graphyte-Base.pdb)");
-
-    auto descriptor = session->get_descriptor(
-        session->get_types().front()
-    );
-
-    (void)descriptor;
-
-    return app.exec();
-}
