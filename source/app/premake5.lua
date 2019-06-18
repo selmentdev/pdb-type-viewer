@@ -22,13 +22,18 @@ project "ptv-ui"
     }
 
     links {
-        "qtmain"
+        "qtmain",
+        "libptv",
+    }
+
+    includedirs {
+        "%{wks.location}/source/lib/public",
     }
 
     qtprefix "Qt5"
 
     debugenvs {
-        "PATH=D:/Qt/5.13.0/msvc2017_64/bin;D:/Qt/5.13.0/msvc2017_64/plugins/platforms;%PATH%"
+        "PATH=D:/Qt/5.13.0/msvc2017_64/bin;D:/Qt/5.13.0/msvc2017_64/plugins/platforms;C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/DIA SDK/bin/amd64;%PATH%"
     }
 
     configuration { "debug" }
