@@ -34,6 +34,31 @@ solution "pdb-type-viewer"
         "/ignore:4099", -- LNK4099: PDB '' was not found with 'qtmain.lib(qtmain_win.obj)' or at ''; linking object as if no debug info
     }
     
+    buildoptions {
+        "/permissive-",
+        "/bigobj",
+        "/Zc:char8_t",      -- NOTE: This one must be removed once MSVC will support it on regular basis.
+        "/Zc:inline",
+        "/Zc:throwingNew",
+        "/Zc:__cplusplus",  -- https://devblogs.microsoft.com/cppblog/msvc-now-correctly-reports-__cplusplus/
+    }
+
+    filter { "configurations:debug" }
+        defines {
+            "DEBUG",
+            "_DEBUG",
+        }
+        runtime "debug"
+        symbols "on"
+
+    filter { "configurations:release" }
+        defines {
+            "NDEBUG",
+        }
+        runtime "release"
+        optimize "speed"
+        inlining "auto"
+
     filter { "kind:ConsoleApp or WindowedApp" }
         linkgroups "on"
 
