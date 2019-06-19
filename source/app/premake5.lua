@@ -28,6 +28,7 @@ project "ptv-ui"
 
     includedirs {
         "%{wks.location}/source/lib/public",
+        "./public",
     }
 
     qtprefix "Qt5"
