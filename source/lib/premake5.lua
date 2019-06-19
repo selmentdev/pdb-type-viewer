@@ -9,11 +9,11 @@ project "libptv"
 
     includedirs {
         "%{wks.location}/source/lib/public",
-        "C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/DIA SDK/include",
+        "$(VSInstallRoot)/DIA SDK/include",
     }
 
     libdirs {
-        "C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/DIA SDK/lib/amd64"
+        "$(VSInstallRoot)/DIA SDK/lib/amd64"
     }
 
     links {

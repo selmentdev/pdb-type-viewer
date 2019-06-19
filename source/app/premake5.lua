@@ -1,5 +1,7 @@
 local qt = premake.extensions.qt
 
+local qt_path = "E:/Qt/5.13.0/msvc2017_64"
+
 project "ptv-ui"
     kind "WindowedApp"
 
@@ -13,7 +15,7 @@ project "ptv-ui"
 
     qt.enable()
 
-    qtpath "D:/Qt/5.13.0/msvc2017_64"
+    qtpath(qt_path)
 
     qtmodules {
         "core",
@@ -22,7 +24,6 @@ project "ptv-ui"
     }
 
     links {
-        "qtmain",
         "libptv",
     }
 
@@ -34,8 +35,18 @@ project "ptv-ui"
     qtprefix "Qt5"
 
     debugenvs {
-        "PATH=D:/Qt/5.13.0/msvc2017_64/bin;D:/Qt/5.13.0/msvc2017_64/plugins/platforms;C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/DIA SDK/bin/amd64;%PATH%"
+        "PATH=" .. qt_path .. "/bin;" .. qt_path .. "/plugins/platforms;%PATH%"
+        -- ;C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/DIA SDK/bin/amd64
     }
 
-    configuration { "debug" }
+    filter { "configurations:debug" }
         qtsuffix "d"
+
+        links {
+            "qtmaind",
+        }
+
+    filter { "configurations:not debug" }
+        links {
+            "qtmain",
+        }

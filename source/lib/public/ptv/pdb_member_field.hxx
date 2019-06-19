@@ -46,7 +46,7 @@ namespace ptv
             return m_type_name;
         }
 
-        std::optional<std::pair<uint64_t, uint64_t>> get_bit_start() const noexcept
+        std::optional<std::pair<uint64_t, uint64_t>> get_bits() const noexcept
         {
             return m_bits;
         }

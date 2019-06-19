@@ -37,11 +37,15 @@ solution "pdb-type-viewer"
     buildoptions {
         "/permissive-",
         "/bigobj",
-        "/Zc:char8_t",      -- NOTE: This one must be removed once MSVC will support it on regular basis.
         "/Zc:inline",
         "/Zc:throwingNew",
         "/Zc:__cplusplus",  -- https://devblogs.microsoft.com/cppblog/msvc-now-correctly-reports-__cplusplus/
     }
+
+    filter { "action:vs2019" }
+        buildoptions {
+            "/Zc:char8_t",      -- NOTE: This one must be removed once MSVC will support it on regular basis.
+        }
 
     filter { "configurations:debug" }
         defines {

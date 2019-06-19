@@ -13,3 +13,14 @@ namespace ptv
 {
     PTV_API std::unique_ptr<pdb_file> create() noexcept;
 }
+
+namespace ptv::helpers
+{
+    PTV_API std::wstring convert(
+        std::string_view value
+    ) noexcept;
+
+    PTV_API std::string convert(
+        std::wstring_view value
+    ) noexcept;
+}

@@ -1,4 +1,5 @@
 #define PTV_BUILDING_LIB
+#define NOMINMAX
 
 #include <wrl/client.h>
 #include <dia2.h>
@@ -55,9 +56,14 @@ namespace ptv::dia
     ) noexcept
     {
         BSTR result{};
-        symbol->get_name(&result);
+        [[maybe_unused]] HRESULT hr = symbol->get_name(&result);
 
-        return { result };
+        if (result != nullptr)
+        {
+            return { result };
+        }
+
+        return {};
     }
 
     uint32_t rank(
@@ -85,8 +91,8 @@ namespace ptv::dia
     ) noexcept
     {
         ULONGLONG result{};
-        symbol->get_length(&result);
-
+        HRESULT hr = symbol->get_length(&result);
+        (void)hr;
         return static_cast<uint64_t>(result);
     }
 
@@ -255,8 +261,10 @@ namespace ptv::dia
             return L"char16_t";
         case btChar32:
             return L"char32_t";
+#if _MSC_VER >= 1920
         case btChar8:
             return L"char8_t";
+#endif
         default:
             return L"<unknown>";
         }
@@ -414,64 +422,24 @@ namespace ptv::impl
                 return false;
             }
 
+
+            std::set<std::wstring_view> unique_types{};
+
+            if (auto enum_types = dia::find_children(global_scope, SymTagUDT); enum_types != nullptr)
+            {
+                for (auto child = dia::next(enum_types); child != nullptr; child = dia::next(enum_types))
+                {
+                    auto name = dia::name(child);
+                    unique_types.insert(name);
+                }
+            }
+
             std::vector<ptv::pdb_type> types{};
+            types.reserve(unique_types.size());
 
-            Microsoft::WRL::ComPtr<IDiaEnumSymbols> enum_symbols{};
-
-            if (FAILED(global_scope->findChildrenEx(
-                SymTagUDT,
-                nullptr,
-                nsNone,
-                enum_symbols.GetAddressOf()
-            )))
+            for (auto const& unique : unique_types)
             {
-                return false;
-            }
-
-
-
-            LONG count{};
-
-            if (FAILED(enum_symbols->get_Count(
-                &count
-            )))
-            {
-                return false;
-            }
-
-            types.reserve(count);
-
-            Microsoft::WRL::ComPtr<IDiaSymbol> symbol{};
-
-            ULONG fetched{ 1 };
-
-            while (fetched != 0)
-            {
-                // TODO: Change it to ptv::dia::next
-                HRESULT hr = enum_symbols->Next(1, symbol.ReleaseAndGetAddressOf(), &fetched);
-
-                if (FAILED(hr))
-                {
-                    return false;
-                }
-
-                if (fetched != 0)
-                {
-                    BSTR name{};
-
-                    if (FAILED(
-                        symbol->get_name(&name)
-                    ))
-                    {
-                        return false;
-                    }
-
-                    ptv::pdb_type type{
-                        .name = { name },
-                    };
-
-                    types.push_back(type);
-                }
+                types.push_back({ unique });
             }
 
             m_types = std::move(types);
@@ -553,6 +521,8 @@ namespace ptv::impl
             if (symbol != nullptr)
             {
                 auto type = dia::type(symbol);
+
+                result += get_type_name(type);
 
                 auto done = false;
                 if (auto rank = dia::rank(symbol); rank != 0)
@@ -812,11 +782,12 @@ namespace ptv::impl
 
             std::vector<Microsoft::WRL::ComPtr<IDiaSymbol>> native_symbols{};
 
-            auto children = dia::find_children(symbol, SymTagNull);
-
-            for (auto child = dia::next(children); child != nullptr; child = dia::next(children))
+            if (auto children = dia::find_children(symbol, SymTagNull); children != nullptr)
             {
-                native_symbols.push_back(child);
+                for (auto child = dia::next(children); child != nullptr; child = dia::next(children))
+                {
+                    native_symbols.push_back(child);
+                }
             }
 
             //
@@ -857,8 +828,15 @@ namespace ptv::impl
 
             std::set<std::pair<uint64_t, uint64_t>> paddings{};
 
+            uint64_t highest_ending{};
+
             for (auto const& current : symbols)
             {
+                //
+                // Compute highest padding value.
+
+                highest_ending = std::max(highest_ending, current->get_next_offset());
+
                 //
                 // Get symbols before current one.
                 //
@@ -941,16 +919,50 @@ namespace ptv::impl
             // Check if whole type has leading padding value.
             //
 
-            if (!symbols.empty())
+            auto const type_size = dia::length(symbol);
+            if (auto const final_padding = type_size - highest_ending; final_padding != 0)
             {
-                if (auto const& last = symbols.back(); last->get_size() != 0)
+                if (!symbols.empty())
                 {
-                    auto const final_offset = last->get_offset() + last->get_size();
-                    auto const final_padding = dia::length(symbol) - final_offset;
+                    //
+                    // If type is not empty, this is real padding. Empty types must have at least
+                    // one byte, but we don't want to report it as memory-wasting padding.
+                    //
 
-                    if (final_padding != 0)
+                    symbols.push_back(std::make_unique<pdb_member_ending>(final_padding, highest_ending));
+                }
+            }
+
+
+            //
+            // TODO:
+            //      Because DIA SDK reports sizeof 0 for some type members, we need to mark them as
+            //      missing detailed size information.
+            //
+            //      This requires us to find sequence:
+            //
+            //          <symbol, offset:x, size:0>
+            //          <padding, offset:x, size:not 0>
+            //
+            //      and replace them with marker.
+            //
+
+            for (size_t i = 0, count = symbols.size() - 1; i < count; ++i)
+            {
+                auto const& first = symbols[i];
+                if (first->get_member_type() == pdb_member_type::field)
+                {
+                    auto& second = symbols[i + 1];
+
+                    if (second->get_member_type() == pdb_member_type::padding)
                     {
-                        symbols.push_back(std::make_unique<pdb_member_ending>(final_padding, final_offset));
+                        auto& typed = static_cast<ptv::pdb_member_padding&>(*second);
+                        typed.set_spurious(true);
+                    }
+                    else if (second->get_member_type() == pdb_member_type::ending)
+                    {
+                        auto& typed = static_cast<ptv::pdb_member_ending&>(*second);
+                        typed.set_spurious(true);
                     }
                 }
             }
@@ -969,7 +981,7 @@ namespace ptv::impl
         {
             auto type = dia::type(symbol);
 
-            auto const size = dia::length(type);
+            auto size = dia::length(type);
             auto const offset = static_cast<uint64_t>(dia::offset(symbol));
             auto const name = dia::name(symbol);
             auto const type_name = get_type_name(type);
@@ -1034,7 +1046,7 @@ namespace ptv::impl
             }
 
             LONG count{};
-            if (FAILED(enum_symbols->get_Count(&count)))
+            if (FAILED(enum_symbols->get_Count(&count)) || count == 0)
             {
                 return {};
             }
@@ -1042,7 +1054,7 @@ namespace ptv::impl
             Microsoft::WRL::ComPtr<IDiaSymbol> symbol{};
 
             ULONG fetched{};
-            if (FAILED(enum_symbols->Next(1, symbol.GetAddressOf(), &fetched)))
+            if (FAILED(enum_symbols->Next(1, symbol.GetAddressOf(), &fetched)) || fetched == 0)
             {
                 return {};
             }
