@@ -1,6 +1,5 @@
 #define PTV_BUILDING_LIB
 
-#include <ptv.hxx>
 #include <wrl/client.h>
 #include <dia2.h>
 #include <diacreate.h>
@@ -8,6 +7,13 @@
 #include <algorithm>
 #include <map>
 #include <set>
+
+#include <ptv.hxx>
+#include <ptv/pdb_abstract_type_member.hxx>
+#include <ptv/pdb_member_ending.hxx>
+#include <ptv/pdb_member_field.hxx>
+#include <ptv/pdb_member_inherited.hxx>
+#include <ptv/pdb_member_padding.hxx>
 
 namespace ptv::dia
 {
@@ -17,7 +23,13 @@ namespace ptv::dia
     {
         Microsoft::WRL::ComPtr<IDiaSymbol> result{};
         ULONG fetched{};
-        enumerator->Next(1, result.GetAddressOf(), &fetched);
+
+        enumerator->Next(
+            1,
+            result.GetAddressOf(),
+            &fetched
+        );
+
         return result;
     }
 
@@ -38,14 +50,19 @@ namespace ptv::dia
         return result;
     }
 
-    std::wstring_view name(Microsoft::WRL::ComPtr<IDiaSymbol> symbol) noexcept
+    std::wstring_view name(
+        Microsoft::WRL::ComPtr<IDiaSymbol> symbol
+    ) noexcept
     {
         BSTR result{};
         symbol->get_name(&result);
+
         return { result };
     }
 
-    uint32_t rank(Microsoft::WRL::ComPtr<IDiaSymbol> symbol) noexcept
+    uint32_t rank(
+        Microsoft::WRL::ComPtr<IDiaSymbol> symbol
+    ) noexcept
     {
         DWORD result{};
         symbol->get_rank(&result);
@@ -53,7 +70,9 @@ namespace ptv::dia
         return static_cast<uint32_t>(result);
     }
 
-    uint32_t count(Microsoft::WRL::ComPtr<IDiaSymbol> symbol) noexcept
+    uint32_t count(
+        Microsoft::WRL::ComPtr<IDiaSymbol> symbol
+    ) noexcept
     {
         DWORD result{};
         symbol->get_count(&result);
@@ -61,69 +80,98 @@ namespace ptv::dia
         return static_cast<uint32_t>(result);
     }
 
-    uint64_t length(Microsoft::WRL::ComPtr<IDiaSymbol> symbol) noexcept
+    uint64_t length(
+        Microsoft::WRL::ComPtr<IDiaSymbol> symbol
+    ) noexcept
     {
         ULONGLONG result{};
         symbol->get_length(&result);
+
         return static_cast<uint64_t>(result);
     }
 
-    int64_t offset(Microsoft::WRL::ComPtr<IDiaSymbol> symbol) noexcept
+    int64_t offset(
+        Microsoft::WRL::ComPtr<IDiaSymbol> symbol
+    ) noexcept
     {
         LONG result{};
         symbol->get_offset(&result);
+
         return static_cast<int64_t>(result);
     }
 
-    uint32_t bit_position(Microsoft::WRL::ComPtr<IDiaSymbol> symbol) noexcept
+    uint32_t bit_position(
+        Microsoft::WRL::ComPtr<IDiaSymbol> symbol
+    ) noexcept
     {
         DWORD result{};
         symbol->get_bitPosition(&result);
+
         return static_cast<uint32_t>(result);
     }
 
-    bool is_const(Microsoft::WRL::ComPtr<IDiaSymbol> type) noexcept
+    bool is_const(
+        Microsoft::WRL::ComPtr<IDiaSymbol> type
+    ) noexcept
     {
         BOOL result{};
         type->get_constType(&result);
+
         return result != FALSE;
     }
 
-    bool is_volatile(Microsoft::WRL::ComPtr<IDiaSymbol> type) noexcept
+    bool is_volatile(
+        Microsoft::WRL::ComPtr<IDiaSymbol> type
+    ) noexcept
     {
         BOOL result{};
         type->get_volatileType(&result);
+
         return result != FALSE;
     }
 
-    bool is_unaligned(Microsoft::WRL::ComPtr<IDiaSymbol> type) noexcept
+    bool is_unaligned(
+        Microsoft::WRL::ComPtr<IDiaSymbol> type
+    ) noexcept
     {
         BOOL result{};
         type->get_unalignedType(&result);
+
         return result != FALSE;
     }
 
-    bool is_reference(Microsoft::WRL::ComPtr<IDiaSymbol> type) noexcept
+    bool is_reference(
+        Microsoft::WRL::ComPtr<IDiaSymbol> type
+    ) noexcept
     {
         BOOL result{};
         type->get_reference(&result);
+
         return result != FALSE;
     }
 
-    UdtKind udt_kind(Microsoft::WRL::ComPtr<IDiaSymbol> symbol) noexcept
+    UdtKind udt_kind(
+        Microsoft::WRL::ComPtr<IDiaSymbol> symbol
+    ) noexcept
     {
         DWORD result{};
         symbol->get_udtKind(&result);
+
         return static_cast<UdtKind>(result);
     }
 
-    BasicType get_base_type(Microsoft::WRL::ComPtr<IDiaSymbol> symbol) noexcept
+    BasicType get_base_type(
+        Microsoft::WRL::ComPtr<IDiaSymbol> symbol
+    ) noexcept
     {
         DWORD result{};
         symbol->get_baseType(&result);
+
         return static_cast<BasicType>(result);
     }
-    std::wstring get_base_type_name(Microsoft::WRL::ComPtr<IDiaSymbol> symbol) noexcept
+    std::wstring get_base_type_name(
+        Microsoft::WRL::ComPtr<IDiaSymbol> symbol
+    ) noexcept
     {
         auto type = dia::get_base_type(symbol);
 
@@ -214,16 +262,20 @@ namespace ptv::dia
         }
     }
 
-    Microsoft::WRL::ComPtr<IDiaSymbol> type(Microsoft::WRL::ComPtr<IDiaSymbol> symbol) noexcept
+    Microsoft::WRL::ComPtr<IDiaSymbol> type(
+        Microsoft::WRL::ComPtr<IDiaSymbol> symbol
+    ) noexcept
     {
         Microsoft::WRL::ComPtr<IDiaSymbol> result{};
 
-        [[maybe_unused]] auto hr = symbol->get_type(result.GetAddressOf());
+        symbol->get_type(result.GetAddressOf());
 
         return result;
     }
 
-    std::optional<enum SymTagEnum> symtag(Microsoft::WRL::ComPtr<IDiaSymbol> symbol) noexcept
+    std::optional<enum SymTagEnum> symtag(
+        Microsoft::WRL::ComPtr<IDiaSymbol> symbol
+    ) noexcept
     {
         DWORD result{};
 
@@ -235,7 +287,9 @@ namespace ptv::dia
         return static_cast<enum SymTagEnum>(result);
     }
 
-    std::optional<bool> is_static(Microsoft::WRL::ComPtr<IDiaSymbol> symbol) noexcept
+    std::optional<bool> is_static(
+        Microsoft::WRL::ComPtr<IDiaSymbol> symbol
+    ) noexcept
     {
         BOOL result{};
 
@@ -247,7 +301,9 @@ namespace ptv::dia
         return (result != FALSE);
     }
 
-    std::optional<LocationType> location(Microsoft::WRL::ComPtr<IDiaSymbol> symbol) noexcept
+    std::optional<LocationType> location(
+        Microsoft::WRL::ComPtr<IDiaSymbol> symbol
+    ) noexcept
     {
         DWORD result{};
 
@@ -317,7 +373,9 @@ namespace ptv::impl
         pdb_file_impl() noexcept = default;
         virtual ~pdb_file_impl() noexcept = default;
 
-        virtual bool load(std::wstring_view path) noexcept override
+        virtual bool load(
+            std::wstring_view path
+        ) noexcept override
         {
             Microsoft::WRL::ComPtr<IDiaDataSource> source{};
 
@@ -389,6 +447,7 @@ namespace ptv::impl
 
             while (fetched != 0)
             {
+                // TODO: Change it to ptv::dia::next
                 HRESULT hr = enum_symbols->Next(1, symbol.ReleaseAndGetAddressOf(), &fetched);
 
                 if (FAILED(hr))
@@ -429,7 +488,9 @@ namespace ptv::impl
             return m_types;
         }
 
-        static std::wstring get_function_type_name(Microsoft::WRL::ComPtr<IDiaSymbol> symbol) noexcept
+        static std::wstring get_function_type_name(
+            Microsoft::WRL::ComPtr<IDiaSymbol> symbol
+        ) noexcept
         {
             std::wstring result{};
 
@@ -476,12 +537,16 @@ namespace ptv::impl
             return result;
         }
 
-        static std::wstring get_bound(Microsoft::WRL::ComPtr<IDiaSymbol> symbol) noexcept
+        static std::wstring get_bound(
+            Microsoft::WRL::ComPtr<IDiaSymbol> symbol
+        ) noexcept
         {
             return L"<bound>";
         }
 
-        static std::wstring get_array_name(Microsoft::WRL::ComPtr<IDiaSymbol> symbol) noexcept
+        static std::wstring get_array_name(
+            Microsoft::WRL::ComPtr<IDiaSymbol> symbol
+        ) noexcept
         {
             std::wstring result{};
 
@@ -567,7 +632,9 @@ namespace ptv::impl
             return result;
         }
 
-        static std::wstring get_type_name(Microsoft::WRL::ComPtr<IDiaSymbol> symbol) noexcept
+        static std::wstring get_type_name(
+            Microsoft::WRL::ComPtr<IDiaSymbol> symbol
+        ) noexcept
         {
             std::wstring result{};
 
@@ -677,7 +744,9 @@ namespace ptv::impl
             return result;
         }
 
-        static std::optional<bool> is_valid_member(Microsoft::WRL::ComPtr<IDiaSymbol> symbol) noexcept
+        static std::optional<bool> is_valid_member(
+            Microsoft::WRL::ComPtr<IDiaSymbol> symbol
+        ) noexcept
         {
             auto symtag = dia::symtag(symbol);
 
@@ -724,11 +793,22 @@ namespace ptv::impl
             return true;
         }
 
-        static std::unique_ptr<pdb_member_inherited> create_member_inherited(Microsoft::WRL::ComPtr<IDiaSymbol> symbol) noexcept
+        static std::unique_ptr<pdb_member_inherited> create_member_inherited(
+            Microsoft::WRL::ComPtr<IDiaSymbol> symbol
+        ) noexcept
         {
+            //
+            // Get basic type info.
+            //
+
             auto const type_name = dia::name(symbol);
             auto const offset = dia::offset(symbol);
             auto const size = dia::length(symbol);
+
+
+            //
+            // Enumerate native children symbols.
+            //
 
             std::vector<Microsoft::WRL::ComPtr<IDiaSymbol>> native_symbols{};
 
@@ -739,6 +819,12 @@ namespace ptv::impl
                 native_symbols.push_back(child);
             }
 
+            //
+            // Sort them by offset.
+            //
+            // NOTE: is this required?
+            //
+#if false
             std::sort(
                 native_symbols.begin(),
                 native_symbols.end(),
@@ -747,30 +833,36 @@ namespace ptv::impl
                     return dia::offset(lhs) < dia::offset(rhs);
                 }
             );
+#endif
 
-            std::vector<std::pair<Microsoft::WRL::ComPtr<IDiaSymbol>, std::unique_ptr<pdb_abstract_type_member>>> valid_symbols{};
+
+            //
+            // Create wrapper for applicable symbols.
+            //
+
+            std::vector<std::unique_ptr<pdb_abstract_type_member>> symbols{};
 
             for (auto const& current : native_symbols)
             {
                 if (auto item = create(current); item != nullptr)
                 {
-                    valid_symbols.push_back(std::make_pair(current, std::move(item)));
+                    symbols.push_back(std::move(item));
                 }
             }
 
-            std::vector<std::unique_ptr<pdb_abstract_type_member>> symbols{};
 
-            for (auto& current : valid_symbols)
-            {
-                symbols.push_back(std::move(current.second));
-            }
-
-
+            //
             // Try to find paddings
+            //
+
             std::set<std::pair<uint64_t, uint64_t>> paddings{};
 
             for (auto const& current : symbols)
             {
+                //
+                // Get symbols before current one.
+                //
+
                 std::vector<ptv::pdb_abstract_type_member*> lesser{};
 
                 for (auto const& before : symbols)
@@ -780,6 +872,11 @@ namespace ptv::impl
                         lesser.push_back(before.get());
                     }
                 }
+
+
+                //
+                // Try find symbol with closest padding value.
+                //
 
                 auto it = std::min_element(
                     std::begin(lesser),
@@ -792,20 +889,38 @@ namespace ptv::impl
 
                 if (it != std::end(lesser))
                 {
+                    //
+                    // Compute offset and padding between this symbol and adjacent.
+                    //
+
                     auto const final_offset = (*it)->get_next_offset();
                     auto const final_padding = current->get_offset() - final_offset;
 
                     if (final_padding != 0)
                     {
+                        //
+                        // Padding found. Remember it.
+                        //
+
                         paddings.insert({ final_padding, final_offset });
                     }
                 }
             }
 
+
+            //
+            // Insert additional paddings to symbols list.
+            //
+
             for (auto const& padding : paddings)
             {
                 symbols.push_back(std::make_unique<pdb_member_padding>(padding.first, padding.second));
             }
+
+
+            //
+            // Sort symbols by offset, then size.
+            //
 
             std::sort(
                 symbols.begin(),
@@ -820,6 +935,11 @@ namespace ptv::impl
                     return lhs->get_offset() < rhs->get_offset();
                 }
             );
+
+
+            //
+            // Check if whole type has leading padding value.
+            //
 
             if (!symbols.empty())
             {
@@ -843,7 +963,9 @@ namespace ptv::impl
             );
         }
 
-        static std::unique_ptr<pdb_member_field> create_member_field(Microsoft::WRL::ComPtr<IDiaSymbol> symbol) noexcept
+        static std::unique_ptr<pdb_member_field> create_member_field(
+            Microsoft::WRL::ComPtr<IDiaSymbol> symbol
+        ) noexcept
         {
             auto type = dia::type(symbol);
 
@@ -872,7 +994,9 @@ namespace ptv::impl
             );
         }
 
-        static std::unique_ptr<pdb_abstract_type_member> create(Microsoft::WRL::ComPtr<IDiaSymbol> symbol) noexcept
+        static std::unique_ptr<pdb_abstract_type_member> create(
+            Microsoft::WRL::ComPtr<IDiaSymbol> symbol
+        ) noexcept
         {
             auto symtag = dia::symtag(symbol);
 
@@ -893,7 +1017,9 @@ namespace ptv::impl
             return nullptr;
         }
 
-        virtual std::unique_ptr<pdb_type_descriptor> get_descriptor(const pdb_type& type) const noexcept override
+        virtual std::unique_ptr<pdb_type_descriptor> get_descriptor(
+            const pdb_type& type
+        ) const noexcept override
         {
             Microsoft::WRL::ComPtr<IDiaEnumSymbols> enum_symbols{};
 

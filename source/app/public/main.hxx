@@ -2,6 +2,10 @@
 #include <QAbstractItemModel>
 #include <QTreeView>
 #include <ptv.hxx>
+#include <ptv/pdb_member_inherited.hxx>
+#include <ptv/pdb_member_padding.hxx>
+#include <ptv/pdb_member_ending.hxx>
+#include <ptv/pdb_member_field.hxx>
 
 namespace viewer
 {
