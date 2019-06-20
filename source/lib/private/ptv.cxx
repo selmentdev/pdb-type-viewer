@@ -195,23 +195,23 @@ namespace ptv::dia
         case btInt:
         case btUInt:
             {
-                std::wstring result = ((type == btUInt) ? L"unsigned " : L"");
+                std::wstring result = ((type == btUInt) ? L"u" : L"");
 
                 auto const length = dia::length(symbol);
 
                 switch (length)
                 {
                 case 1:
-                    result += L"char";
+                    result += L"int8";
                     break;
                 case 2:
-                    result += L"short";
+                    result += L"int16";
                     break;
                 case 4:
-                    result += L"int";
+                    result += L"int32";
                     break;
                 case 8:
-                    result += L"long long";
+                    result += L"int64";
                     break;
                 }
 
@@ -1129,36 +1129,23 @@ namespace ptv::impl
             const pdb_type& type
         ) const noexcept override
         {
-            Microsoft::WRL::ComPtr<IDiaEnumSymbols> enum_symbols{};
-
-            if (FAILED(m_global_scope->findChildrenEx(
-                SymTagNull,
-                std::wstring{ type.name }.c_str(),
-                nsNone,
-                enum_symbols.GetAddressOf()
-            )))
+            if (auto enum_types = dia::find_children(m_global_scope, SymTagUDT); enum_types != nullptr)
             {
-                return {};
+                for (auto child = dia::next(enum_types); child != nullptr; child = dia::next(enum_types))
+                {
+                    auto name = dia::name(child);
+
+                    if (name == type.name)
+                    {
+                        std::vector<std::unique_ptr<pdb_abstract_type_member>> members{};
+                        members.emplace_back(create_member_inherited(child));
+
+                        return std::make_unique<pdb_type_descriptor>(std::move(members));
+                    }
+                }
             }
 
-            LONG count{};
-            if (FAILED(enum_symbols->get_Count(&count)))
-            {
-                return {};
-            }
-
-            Microsoft::WRL::ComPtr<IDiaSymbol> symbol{};
-
-            ULONG fetched{};
-            if (FAILED(enum_symbols->Next(1, symbol.GetAddressOf(), &fetched)) || fetched == 0)
-            {
-                return {};
-            }
-
-            std::vector<std::unique_ptr<pdb_abstract_type_member>> members{};
-            members.emplace_back(create_member_inherited(symbol));
-
-            return std::make_unique<pdb_type_descriptor>(std::move(members));
+            return {};
         }
     };
 }
