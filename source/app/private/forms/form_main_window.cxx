@@ -23,24 +23,23 @@ namespace ptvapp::forms
     {
         if (auto path = QFileDialog::getOpenFileName(this, {}, {}, tr("PDB Files (*.pdb)")); !path.isEmpty())
         {
-            QMessageBox::information(this, "Open", path);
-
-            m_pdb_file = ptv::create();
-            if (m_pdb_file->load(path.toStdWString()))
-            {
-                QStringList list{};
-
-                for (auto const& type : m_pdb_file->get_types())
-                {
-                    list << QString::fromStdWString(std::wstring{ type.name });
-                }
-
-                m_type_list_model->setStringList(list);
-            }
+            this->load_from_path(path);
         }
-        else
+    }
+
+    void main_window::load_from_path(QStringView path) noexcept
+    {
+        m_pdb_file = ptv::create();
+        if (m_pdb_file->load(path.toString().toStdWString()))
         {
-            QMessageBox::information(this, "Open", "none");
+            QStringList list{};
+
+            for (auto const& type : m_pdb_file->get_types())
+            {
+                list << QString::fromStdWString(std::wstring{ type.name });
+            }
+
+            m_type_list_model->setStringList(list);
         }
     }
 
@@ -84,6 +83,8 @@ namespace ptvapp::forms
             &QItemSelectionModel::currentChanged,
             [&](const QModelIndex& current, [[maybe_unused]] const QModelIndex& previous)
             {
+                (void)previous;
+
                 if (auto type = m_type_list_model->data(current).toString(); !type.isEmpty())
                 {
                     auto wtype = type.toStdWString();

@@ -16,6 +16,13 @@ int main(int argc, char* argv[])
     QCoreApplication::setApplicationVersion(QT_VERSION_STR);
 
     ptvapp::forms::main_window main_window{};
+
+    if (argc == 2)
+    {
+        QString path{ argv[1] };
+        main_window.load_from_path(path);
+    }
+
     main_window.show();
 
     return app.exec();

@@ -22,6 +22,9 @@ namespace ptvapp::forms
     public:
         main_window() noexcept;
 
+    public:
+        void load_from_path(QStringView path) noexcept;
+
     private slots:
         void about() noexcept;
         void load() noexcept;

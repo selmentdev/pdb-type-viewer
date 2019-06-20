@@ -1,6 +1,6 @@
 local qt = premake.extensions.qt
 
-local qt_path = "d:/Qt/5.13.0/msvc2017_64"
+local qt_path = "e:/Qt/5.13.0/msvc2017_64"
 
 project "ptv-ui"
     kind "WindowedApp"
@@ -35,8 +35,7 @@ project "ptv-ui"
     qtprefix "Qt5"
 
     debugenvs {
-        "PATH=" .. qt_path .. "/bin;" .. qt_path .. "/plugins/platforms;%PATH%"
-        -- ;C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/DIA SDK/bin/amd64
+        "PATH=" .. qt_path .. "/bin;" .. qt_path .. "/plugins/platforms;$(VSInstallRoot)/DIA SDK/bin/amd64;%PATH%"
     }
 
     filter { "configurations:debug" }

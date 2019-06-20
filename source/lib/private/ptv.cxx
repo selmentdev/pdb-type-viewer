@@ -1142,7 +1142,7 @@ namespace ptv::impl
             }
 
             LONG count{};
-            if (FAILED(enum_symbols->get_Count(&count)) || count == 0)
+            if (FAILED(enum_symbols->get_Count(&count)))
             {
                 return {};
             }
