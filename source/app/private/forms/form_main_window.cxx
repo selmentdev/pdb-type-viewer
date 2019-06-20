@@ -1,6 +1,6 @@
 #include <forms/form_main_window.hxx>
 #include <QtWidgets>
-#include <main.hxx>
+#include <models/model_type_descriptor.hxx>
 
 namespace ptvapp::forms
 {
@@ -74,7 +74,7 @@ namespace ptvapp::forms
 
         this->addDockWidget(Qt::LeftDockWidgetArea, pane_view_type_list);
 
-        m_type_view_model = new viewer::TreeModel(this);
+        m_type_view_model = new ptvapp::models::type_descriptor_model(this);
         auto* view_type_model = new QTreeView(this);
         view_type_model->setModel(m_type_view_model);
 
@@ -92,7 +92,7 @@ namespace ptvapp::forms
 
                     if (auto descriptor = this->m_pdb_file->get_descriptor(wrapper); descriptor != nullptr)
                     {
-                        this->m_type_view_model->from_type_descriptor(descriptor);
+                        this->m_type_view_model->from_type_descriptor(std::move(descriptor));
                         //view_type_model->expandAll();
                     }
                 }
