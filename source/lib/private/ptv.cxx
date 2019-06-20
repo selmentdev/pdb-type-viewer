@@ -11,7 +11,6 @@
 
 #include <ptv.hxx>
 #include <ptv/pdb_abstract_type_member.hxx>
-#include <ptv/pdb_member_ending.hxx>
 #include <ptv/pdb_member_field.hxx>
 #include <ptv/pdb_member_inherited.hxx>
 #include <ptv/pdb_member_padding.hxx>
@@ -41,12 +40,14 @@ namespace ptv::dia
     {
         Microsoft::WRL::ComPtr<IDiaEnumSymbols> result{};
 
-        symbol->findChildrenEx(
+        HRESULT hr = symbol->findChildrenEx(
             symtag,
             nullptr,
             nsNone,
             result.GetAddressOf()
         );
+
+        (void)hr;
 
         return result;
     }
@@ -387,14 +388,24 @@ namespace ptv::impl
         {
             Microsoft::WRL::ComPtr<IDiaDataSource> source{};
 
-            if (FAILED(NoRegCoCreate(
-                L"msdia140.dll",
-                CLSID_DiaSource,
+            if (FAILED(NoOleCoCreate(
+                CLSID_DiaSourceAlt,
                 IID_IDiaDataSource,
                 (void**)source.GetAddressOf()
             )))
             {
-                return false;
+                //
+                // Failed to load msdia from registry.
+
+                if (FAILED(NoRegCoCreate(
+                    L"msdia140.dll",
+                    CLSID_DiaSourceAlt,
+                    IID_IDiaDataSource,
+                    (void**)source.GetAddressOf()
+                )))
+                {
+                    return false;
+                }
             }
 
             if (FAILED(source->loadDataFromPdb(
@@ -929,7 +940,7 @@ namespace ptv::impl
                     // one byte, but we don't want to report it as memory-wasting padding.
                     //
 
-                    symbols.push_back(std::make_unique<pdb_member_ending>(final_padding, highest_ending));
+                    symbols.push_back(std::make_unique<pdb_member_padding>(final_padding, highest_ending));
                 }
             }
 
@@ -947,22 +958,36 @@ namespace ptv::impl
             //      and replace them with marker.
             //
 
-            for (size_t i = 0, count = symbols.size() - 1; i < count; ++i)
+            if (symbols.size() > 1)
             {
-                auto const& first = symbols[i];
-                if (first->get_member_type() == pdb_member_type::field)
-                {
-                    auto& second = symbols[i + 1];
+                //
+                // We need at least one element in this set of symbols.
+                //
 
-                    if (second->get_member_type() == pdb_member_type::padding)
+                for (size_t i = 0, count = symbols.size() - 1; i < count; ++i)
+                {
+                    auto const& first = symbols[i];
+                    if (first->get_member_type() == pdb_member_type::field)
                     {
-                        auto& typed = static_cast<ptv::pdb_member_padding&>(*second);
-                        typed.set_spurious(true);
-                    }
-                    else if (second->get_member_type() == pdb_member_type::ending)
-                    {
-                        auto& typed = static_cast<ptv::pdb_member_ending&>(*second);
-                        typed.set_spurious(true);
+                        auto const& field = static_cast<pdb_member_field&>(*first);
+
+                        auto& second = symbols[i + 1];
+
+                        if (second->get_member_type() == pdb_member_type::padding)
+                        {
+                            auto& padding = static_cast<ptv::pdb_member_padding&>(*second);
+
+                            if (field.get_offset() == padding.get_offset() &&
+                                field.get_size() == 0 &&
+                                field.get_kind() != ptv::pdb_member_kind::array)
+                            {
+                                //
+                                // Type may contain array of zero elements!
+                                //
+
+                                padding.set_spurious(true);
+                            }
+                        }
                     }
                 }
             }
@@ -972,7 +997,76 @@ namespace ptv::impl
                 dia::offset(symbol),
                 type_name,
                 std::move(symbols)
-            );
+                );
+        }
+
+        static pdb_member_kind get_field_kind(
+            Microsoft::WRL::ComPtr<IDiaSymbol> symbol
+        ) noexcept
+        {
+            auto const symtag = dia::symtag(symbol);
+
+            switch (symtag.value_or(SymTagNull))
+            {
+            case SymTagNull:
+            case SymTagExe:
+            case SymTagCompiland:
+            case SymTagCompilandDetails:
+            case SymTagCompilandEnv:
+            case SymTagFunction:
+            case SymTagBlock:
+            case SymTagData:
+            case SymTagAnnotation:
+            case SymTagLabel:
+            case SymTagPublicSymbol:
+            case SymTagFunctionType:
+            case SymTagBaseType:
+            case SymTagTypedef:
+            case SymTagBaseClass:
+            case SymTagFriend:
+            case SymTagFunctionArgType:
+            case SymTagFuncDebugStart:
+            case SymTagFuncDebugEnd:
+            case SymTagUsingNamespace:
+            case SymTagCustom:
+            case SymTagThunk:
+            case SymTagCustomType:
+            case SymTagManagedType:
+            case SymTagDimension:
+            case SymTagCallSite:
+            case SymTagInlineSite:
+            case SymTagBaseInterface:
+            case SymTagVectorType:
+            case SymTagMatrixType:
+            case SymTagHLSLType:
+            case SymTagCaller:
+            case SymTagCallee:
+            case SymTagExport:
+            case SymTagHeapAllocationSite:
+            case SymTagCoffGroup:
+            case SymTagInlinee:
+            case SymTagMax:
+                return pdb_member_kind::unknown;
+            case SymTagUDT:
+            case SymTagEnum:
+                return pdb_member_kind::value;
+            case SymTagPointerType:
+                if (dia::is_reference(symbol))
+                {
+                    return pdb_member_kind::reference;
+                }
+                else
+                {
+                    return pdb_member_kind::pointer;
+                }
+            case SymTagArrayType:
+                return pdb_member_kind::array;
+            case SymTagVTableShape:
+            case SymTagVTable:
+                return pdb_member_kind::vtable;
+            }
+
+            return pdb_member_kind::unknown;
         }
 
         static std::unique_ptr<pdb_member_field> create_member_field(
@@ -986,6 +1080,7 @@ namespace ptv::impl
             auto const name = dia::name(symbol);
             auto const type_name = get_type_name(type);
             auto const location = dia::location(symbol);
+            auto const kind = get_field_kind(type);
 
             std::optional<std::pair<uint64_t, uint64_t>> bits{};
 
@@ -1002,6 +1097,7 @@ namespace ptv::impl
                 offset,
                 name,
                 type_name,
+                kind,
                 bits
             );
         }

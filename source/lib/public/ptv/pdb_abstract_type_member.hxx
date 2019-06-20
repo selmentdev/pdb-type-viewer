@@ -8,7 +8,6 @@ namespace ptv
         inherited,
         field,
         padding,
-        ending,
     };
 
     class pdb_abstract_type_member

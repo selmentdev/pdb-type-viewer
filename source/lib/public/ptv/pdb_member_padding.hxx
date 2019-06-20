@@ -30,5 +30,10 @@ namespace ptv
         {
             m_is_spurious = value;
         }
+
+        bool is_spurious() const noexcept
+        {
+            return m_is_spurious;
+        }
     };
 }

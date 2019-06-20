@@ -1,9 +1,17 @@
 #pragma once
 #include <QMainWindow>
 
+#include <ptv.hxx>
+
 class QAction;
 class QListWidget;
 class QMenu;
+class QStringListModel;
+
+namespace viewer
+{
+    class TreeModel;
+}
 
 namespace ptvapp::forms
 {
@@ -16,6 +24,7 @@ namespace ptvapp::forms
 
     private slots:
         void about() noexcept;
+        void load() noexcept;
 
     private:
         void create_actions() noexcept;
@@ -24,5 +33,9 @@ namespace ptvapp::forms
 
     private:
         QMenu* m_main_menu;
+        std::unique_ptr<ptv::pdb_file> m_pdb_file;
+
+        QStringListModel* m_type_list_model;
+        viewer::TreeModel* m_type_view_model;
     };
 }

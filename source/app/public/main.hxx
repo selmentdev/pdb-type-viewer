@@ -4,7 +4,6 @@
 #include <ptv.hxx>
 #include <ptv/pdb_member_inherited.hxx>
 #include <ptv/pdb_member_padding.hxx>
-#include <ptv/pdb_member_ending.hxx>
 #include <ptv/pdb_member_field.hxx>
 
 namespace viewer
@@ -64,6 +63,12 @@ namespace viewer
             return m_ParentItem;
         }
 
+        void clear()
+        {
+            qDeleteAll(m_ChildItems);
+            m_ChildItems.clear();
+        }
+
     private:
         QList<TreeItem*> m_ChildItems;
         QList<QVariant> m_ItemData;
@@ -75,18 +80,26 @@ namespace viewer
         Q_OBJECT
 
     public:
-        explicit TreeModel(const std::unique_ptr<ptv::pdb_type_descriptor>& descriptor, QObject* parent = nullptr)
+        explicit TreeModel(QObject* parent = nullptr)
             : QAbstractItemModel(parent)
         {
             QList<QVariant> rootData;
-            rootData << "Name" << "Size" << "Offset";
+            rootData << "Type" << "Name" << "Offset" << "Size";
             rootItem = new TreeItem(rootData);
-            setupModelData(descriptor->get_members(), rootItem);
         }
 
         ~TreeModel()
         {
             delete rootItem;
+        }
+
+        void from_type_descriptor(const std::unique_ptr<ptv::pdb_type_descriptor>& descriptor) noexcept
+        {
+            this->beginResetModel();
+            this->rootItem->clear();
+
+            setupModelData(descriptor->get_members(), rootItem);
+            this->endResetModel();
         }
 
         QVariant data(
@@ -197,34 +210,40 @@ namespace viewer
                 {
                 case ptv::pdb_member_type::inherited:
                     {
-                        if (auto detailed = static_cast<ptv::pdb_member_inherited*>(member.get()); detailed != nullptr)
-                        {
-                            auto name = detailed->get_name();
+                        auto const& detailed = static_cast<const ptv::pdb_member_inherited&>(*member);
+                        auto name = detailed.get_name();
 
-                            data << QString::fromWCharArray(name.data(), static_cast<int>(name.size())) << detailed->get_size() << detailed->get_offset();
-                        }
+                        data
+                            << QString::fromStdWString(std::wstring{ name })
+                            << ""
+                            << detailed.get_offset()
+                            << detailed.get_size();
 
                         break;
                     }
                 case ptv::pdb_member_type::field:
                     {
-                        if (auto detailed = static_cast<ptv::pdb_member_field*>(member.get()); detailed != nullptr)
-                        {
-                            auto name = detailed->get_name();
+                        auto const& detailed = static_cast<const ptv::pdb_member_field&>(*member);
 
-                            data << QString::fromWCharArray(name.data(), static_cast<int>(name.size())) << detailed->get_size() << detailed->get_offset();
-                        }
+                        auto name = detailed.get_name();
+                        auto type_name = detailed.get_type_name();
+
+                        data
+                            << QString::fromStdWString(std::wstring{ type_name })
+                            << QString::fromStdWString(std::wstring{ name })
+                            << detailed.get_offset()
+                            << detailed.get_size();
 
                         break;
                     }
                 case ptv::pdb_member_type::padding:
                     {
-                        data << "<<padding>>" << member->get_size() << member->get_offset();
-                        break;
-                    }
-                case ptv::pdb_member_type::ending:
-                    {
-                        data << "<<ending>>" << member->get_size() << member->get_offset();
+                        auto const& detailed = static_cast<const ptv::pdb_member_padding&>(*member);
+                        data
+                            << "<<padding>>"
+                            << (detailed.is_spurious() ? "spurious" : "")
+                            << detailed.get_offset()
+                            << detailed.get_size();
                         break;
                     }
                 }

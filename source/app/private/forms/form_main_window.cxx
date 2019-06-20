@@ -1,5 +1,6 @@
 #include <forms/form_main_window.hxx>
 #include <QtWidgets>
+#include <main.hxx>
 
 namespace ptvapp::forms
 {
@@ -18,16 +19,44 @@ namespace ptvapp::forms
         QMessageBox::about(this, tr("About pdb-type-viewer"), tr("pdb-type-viewer"));
     }
 
+    void main_window::load() noexcept
+    {
+        if (auto path = QFileDialog::getOpenFileName(this, {}, {}, tr("PDB Files (*.pdb)")); !path.isEmpty())
+        {
+            QMessageBox::information(this, "Open", path);
+
+            m_pdb_file = ptv::create();
+            if (m_pdb_file->load(path.toStdWString()))
+            {
+                QStringList list{};
+
+                for (auto const& type : m_pdb_file->get_types())
+                {
+                    list << QString::fromStdWString(std::wstring{ type.name });
+                }
+
+                m_type_list_model->setStringList(list);
+            }
+        }
+        else
+        {
+            QMessageBox::information(this, "Open", "none");
+        }
+    }
+
     void main_window::create_actions() noexcept
     {
-        QMenu* menu_file = menuBar()->addMenu(tr("&File"));
+        auto* menu_file = menuBar()->addMenu(tr("&File"));
 
-        QAction* action_menu_file_close = menu_file->addAction(tr("&Close"), this, &QWidget::close);
+        auto* action_menu_file_open = menu_file->addAction(tr("&Open"), this, &main_window::load);
+        action_menu_file_open->setShortcuts(QKeySequence::Open);
+
+        auto* action_menu_file_close = menu_file->addAction(tr("&Close"), this, &QWidget::close);
         action_menu_file_close->setShortcuts(QKeySequence::Close);
 
-        QMenu* menu_help = menuBar()->addMenu(tr("&Help"));
+        auto* menu_help = menuBar()->addMenu(tr("&Help"));
 
-        [[maybe_unused]] QAction* action_menu_help_about = menu_help->addAction(tr("&About"), this, &main_window::about);
+        [[maybe_unused]] auto* action_menu_help_about = menu_help->addAction(tr("&About"), this, &main_window::about);
     }
 
     void main_window::create_status_bar() noexcept
@@ -37,9 +66,38 @@ namespace ptvapp::forms
 
     void main_window::create_controls() noexcept
     {
-        QDockWidget* pane_view_type_list = new QDockWidget(tr("Type List"), this);
+
+        auto* pane_view_type_list = new QDockWidget(tr("Type List"), this);
+        auto* view_type_list = new QListView(pane_view_type_list);
+        m_type_list_model = new QStringListModel();
+        view_type_list->setModel(m_type_list_model);
+        pane_view_type_list->setWidget(view_type_list);
+
         this->addDockWidget(Qt::LeftDockWidgetArea, pane_view_type_list);
 
-        this->setCentralWidget(new QTextEdit());
+        m_type_view_model = new viewer::TreeModel(this);
+        auto* view_type_model = new QTreeView(this);
+        view_type_model->setModel(m_type_view_model);
+
+        connect(
+            view_type_list->selectionModel(),
+            &QItemSelectionModel::currentChanged,
+            [&](const QModelIndex& current, [[maybe_unused]] const QModelIndex& previous)
+            {
+                if (auto type = m_type_list_model->data(current).toString(); !type.isEmpty())
+                {
+                    auto wtype = type.toStdWString();
+                    ptv::pdb_type wrapper{ wtype };
+
+                    if (auto descriptor = this->m_pdb_file->get_descriptor(wrapper); descriptor != nullptr)
+                    {
+                        this->m_type_view_model->from_type_descriptor(descriptor);
+                        //view_type_model->expandAll();
+                    }
+                }
+            }
+        );
+
+        this->setCentralWidget(view_type_model);
     }
 }

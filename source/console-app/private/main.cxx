@@ -1,6 +1,7 @@
 #include <ptv.hxx>
 #include <ptv/pdb_member_inherited.hxx>
 #include <ptv/pdb_member_field.hxx>
+#include <ptv/pdb_member_padding.hxx>
 #include <iostream>
 
 std::size_t compute_padding(const ptv::pdb_abstract_type_member& member) noexcept
@@ -10,7 +11,6 @@ std::size_t compute_padding(const ptv::pdb_abstract_type_member& member) noexcep
     switch (member.get_member_type())
     {
     case ptv::pdb_member_type::padding:
-    case ptv::pdb_member_type::ending:
         {
             result += member.get_size();
             break;
@@ -53,9 +53,17 @@ void print_member(uint32_t level, const ptv::pdb_abstract_type_member& member) n
     switch (member.get_member_type())
     {
     case ptv::pdb_member_type::padding:
-    case ptv::pdb_member_type::ending:
         {
-            std::wprintf(L"<<padding>> offset: %zu size: %zu\n", member.get_offset(), member.get_size());
+            auto const& padding = static_cast<const ptv::pdb_member_padding&>(member);
+
+            std::wprintf(L"<<padding>> offset: %zu size: %zu", member.get_offset(), member.get_size());
+
+            if (padding.is_spurious())
+            {
+                std::fputws(L" spurious", stdout);
+            }
+
+            std::putwchar(L'\n');
             break;
         }
     case ptv::pdb_member_type::inherited:
@@ -134,14 +142,19 @@ int main(int argc, char* argv[])
         auto session = ptv::create();
         auto path = ptv::helpers::convert(argv[1]);
 
-        session->load(path);
-
-        for (auto const& type : session->get_types())
+        if (session->load(path))
         {
-            if (auto descriptor = session->get_descriptor(type); descriptor != nullptr)
+            for (auto const& type : session->get_types())
             {
-                print_type(type, *descriptor);
+                if (auto descriptor = session->get_descriptor(type); descriptor != nullptr)
+                {
+                    print_type(type, *descriptor);
+                }
             }
+        }
+        else
+        {
+            std::fwprintf(stderr, L"Cannot load file: %s\n", path.c_str());
         }
     }
 
