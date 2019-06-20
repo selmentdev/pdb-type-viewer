@@ -2,6 +2,7 @@
 #include <ptv/pdb_member_inherited.hxx>
 #include <ptv/pdb_member_field.hxx>
 #include <ptv/pdb_member_padding.hxx>
+#include <QColor>
 
 namespace ptvapp::models
 {
@@ -193,8 +194,13 @@ namespace ptvapp::models
     {
         this->m_CurrentDescriptor = std::move(descriptor);
         this->beginResetModel();
-        this->m_Root->clear();
+
+        delete this->m_Root;
+        this->m_Root = nullptr;
+
+        this->m_Root = new type_descriptor_item(nullptr, nullptr);
         this->SetupModelData(this->m_CurrentDescriptor->get_members(), m_Root);
+
         this->endResetModel();
     }
 
@@ -222,10 +228,28 @@ namespace ptvapp::models
     {
         if (index.isValid())
         {
-            auto* item = static_cast<type_descriptor_item*>(index.internalPointer());
+            auto const* item = static_cast<type_descriptor_item*>(index.internalPointer());
 
             if (role == Qt::BackgroundRole)
             {
+                if (auto const* member = item->get_member(); member != nullptr)
+                {
+                    auto const member_type = member->get_member_type();
+
+                    if (member_type == ptv::pdb_member_type::padding)
+                    {
+                        auto const* padding = static_cast<const ptv::pdb_member_padding*>(member);
+
+                        if (padding->is_spurious())
+                        {
+                            return QColor::fromRgb(255, 50, 50);
+                        }
+                        else
+                        {
+                            return QColor::fromRgb(224, 128, 128);
+                        }
+                    }
+                }
             }
 
             if (role != Qt::DisplayRole)

@@ -74,9 +74,9 @@ namespace ptvapp::forms
 
         this->addDockWidget(Qt::LeftDockWidgetArea, pane_view_type_list);
 
-        m_type_view_model = new ptvapp::models::type_descriptor_model(this);
-        auto* view_type_model = new QTreeView(this);
-        view_type_model->setModel(m_type_view_model);
+        m_type_model = new ptvapp::models::type_descriptor_model(this);
+        m_type_view = new QTreeView(this);
+        m_type_view->setModel(m_type_model);
 
         connect(
             view_type_list->selectionModel(),
@@ -92,13 +92,21 @@ namespace ptvapp::forms
 
                     if (auto descriptor = this->m_pdb_file->get_descriptor(wrapper); descriptor != nullptr)
                     {
-                        this->m_type_view_model->from_type_descriptor(std::move(descriptor));
-                        //view_type_model->expandAll();
+                        this->m_type_model->from_type_descriptor(std::move(descriptor));
                     }
                 }
             }
         );
 
-        this->setCentralWidget(view_type_model);
+        connect(
+            m_type_model,
+            &QAbstractItemModel::modelReset,
+            [&]()
+            {
+                m_type_view->expandAll();
+            }
+        );
+
+        this->setCentralWidget(m_type_view);
     }
 }

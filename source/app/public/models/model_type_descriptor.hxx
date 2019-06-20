@@ -50,6 +50,12 @@ namespace ptvapp::models
         type_descriptor_item* get_parent() const noexcept;
 
         void clear() noexcept;
+
+    public:
+        ptv::pdb_abstract_type_member* get_member() const noexcept
+        {
+            return m_member;
+        }
     };
 }
 

@@ -7,6 +7,7 @@ class QAction;
 class QListWidget;
 class QMenu;
 class QStringListModel;
+class QTreeView;
 
 namespace ptvapp::models
 {
@@ -39,6 +40,9 @@ namespace ptvapp::forms
         std::unique_ptr<ptv::pdb_file> m_pdb_file;
 
         QStringListModel* m_type_list_model;
-        ptvapp::models::type_descriptor_model* m_type_view_model;
+
+
+        ptvapp::models::type_descriptor_model* m_type_model;
+        QTreeView* m_type_view;
     };
 }
