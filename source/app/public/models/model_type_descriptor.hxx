@@ -18,7 +18,7 @@ namespace ptvapp::models
     class type_descriptor_item
     {
     private:
-        QList< type_descriptor_item*> m_children;
+        QList<type_descriptor_item*> m_children;
         type_descriptor_item* m_parent;
         ptv::pdb_abstract_type_member* m_member;
 

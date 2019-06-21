@@ -65,27 +65,61 @@ namespace ptvapp::forms
 
     void main_window::create_controls() noexcept
     {
+        this->m_dock_pane_type_list = new QDockWidget(tr("Type List"), this);
+        this->m_type_list_model = new QStringListModel(this);
 
-        auto* pane_view_type_list = new QDockWidget(tr("Type List"), this);
-        auto* view_type_list = new QListView(pane_view_type_list);
-        m_type_list_model = new QStringListModel();
-        view_type_list->setModel(m_type_list_model);
-        pane_view_type_list->setWidget(view_type_list);
+        this->m_type_list_model_proxy = new QSortFilterProxyModel(this);
+        this->m_type_list_model_proxy->setSourceModel(this->m_type_list_model);
 
-        this->addDockWidget(Qt::LeftDockWidgetArea, pane_view_type_list);
+        auto* container = new QWidget();
 
-        m_type_model = new ptvapp::models::type_descriptor_model(this);
-        m_type_view = new QTreeView(this);
-        m_type_view->setModel(m_type_model);
+        this->m_type_list_view = new QListView(container);
+        this->m_type_list_view->setModel(this->m_type_list_model_proxy);
+        this->m_type_list_view->setEditTriggers(QAbstractItemView::NoEditTriggers);
+
+        auto* filter = new QLineEdit(container);
+
+        auto* vbox = new QVBoxLayout();
+        vbox->addWidget(filter, 0);
+        vbox->addWidget(this->m_type_list_view, 1);
+
+        container->setLayout(vbox);
+
+        this->m_dock_pane_type_list->setWidget(container);
+
+
+        this->addDockWidget(Qt::LeftDockWidgetArea, this->m_dock_pane_type_list);
+
+        this->m_type_model = new ptvapp::models::type_descriptor_model(this);
+        this->m_type_view = new QTreeView(this);
+        this->m_type_view->setModel(this->m_type_model);
+        this->m_type_view->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
+
+        this->setCentralWidget(this->m_type_view);
 
         connect(
-            view_type_list->selectionModel(),
+            filter,
+            &QLineEdit::textChanged,
+            [&](const QString& value)
+            {
+                this->m_type_list_model_proxy->setFilterRegExp(
+                    QRegExp(
+                        value,
+                        Qt::CaseInsensitive,
+                        QRegExp::RegExp
+                    )
+                );
+            }
+        );
+
+        connect(
+            this->m_type_list_view->selectionModel(),
             &QItemSelectionModel::currentChanged,
             [&](const QModelIndex& current, [[maybe_unused]] const QModelIndex& previous)
             {
                 (void)previous;
 
-                if (auto type = m_type_list_model->data(current).toString(); !type.isEmpty())
+                if (auto type = this->m_type_list_model_proxy->data(current).toString(); !type.isEmpty())
                 {
                     auto wtype = type.toStdWString();
                     ptv::pdb_type wrapper{ wtype };
@@ -99,14 +133,12 @@ namespace ptvapp::forms
         );
 
         connect(
-            m_type_model,
+            this->m_type_model,
             &QAbstractItemModel::modelReset,
             [&]()
             {
-                m_type_view->expandAll();
+                this->m_type_view->expandAll();
             }
         );
-
-        this->setCentralWidget(m_type_view);
     }
 }
