@@ -146,6 +146,16 @@ namespace ptvapp::models
 
                     break;
                 }
+            case type_descriptor_item_role::padding:
+                {
+                    if (member_type == ptv::pdb_member_type::inherited)
+                    {
+                        auto const* padding = static_cast<const ptv::pdb_member_inherited*>(this->m_member);
+                        return padding->get_padding();
+                    }
+
+                    break;
+                }
             case type_descriptor_item_role::kind:
                 {
                     if (member_type == ptv::pdb_member_type::field)
@@ -260,10 +270,12 @@ namespace ptvapp::models
         case 3:
             return type_descriptor_item_role::size;
         case 4:
+            return type_descriptor_item_role::padding;
+        case 5:
             return type_descriptor_item_role::kind;
         }
 
-        return type_descriptor_item_role::name;
+        return type_descriptor_item_role::padding;
     }
 
     QVariant type_descriptor_model::data(
@@ -343,6 +355,8 @@ namespace ptvapp::models
             case 3:
                 return tr("Size");
             case 4:
+                return tr("Padding");
+            case 5:
                 return tr("Kind");
             }
         }
@@ -424,7 +438,7 @@ namespace ptvapp::models
     ) const
     {
         (void)parent;
-        return 5;
+        return 6;
     }
 
     void type_descriptor_model::SetupModelData(

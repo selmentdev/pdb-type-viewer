@@ -12,6 +12,7 @@ namespace ptvapp::models
         size,
         offset,
         kind,
+        padding,
         is_padding,
         is_spurious,
     };

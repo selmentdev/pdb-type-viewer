@@ -992,9 +992,40 @@ namespace ptv::impl
                 }
             }
 
+
+            //
+            // Compute total padding.
+            //
+
+            uint64_t total_padding{};
+
+            for (auto const& it : symbols)
+            {
+                switch (it->get_member_type())
+                {
+                case ptv::pdb_member_type::padding:
+                    {
+                        auto const& padding = static_cast<ptv::pdb_member_padding const&>(*it);
+                        total_padding += padding.get_size();
+                        break;
+                    }
+                case ptv::pdb_member_type::inherited:
+                    {
+                        auto const& inherited= static_cast<ptv::pdb_member_inherited const&>(*it);
+                        total_padding += inherited.get_padding();
+                        break;
+                    }
+                default:
+                    {
+                        break;
+                    }
+                }
+            }
+
             return std::make_unique<pdb_member_inherited>(
                 dia::length(symbol),
                 dia::offset(symbol),
+                total_padding,
                 type_name,
                 std::move(symbols)
                 );
