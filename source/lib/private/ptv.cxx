@@ -918,7 +918,7 @@ namespace ptv::impl
                 {
                     if (lhs->get_offset() == rhs->get_offset())
                     {
-                        return lhs->get_size() < rhs->get_size();
+                        return lhs->get_size() > rhs->get_size();
                     }
 
                     return lhs->get_offset() < rhs->get_offset();
@@ -1057,6 +1057,25 @@ namespace ptv::impl
                 }
                 else
                 {
+                    if (auto const type = dia::type(symbol); type != nullptr)
+                    {
+                        if (auto const type_symtag = dia::symtag(type); type_symtag.has_value())
+                        {
+                            switch (*type_symtag)
+                            {
+                            case SymTagVTable:
+                            case SymTagVTableShape:
+                                {
+                                    return pdb_member_kind::vtable;
+                                }
+                            default:
+                                {
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
                     return pdb_member_kind::pointer;
                 }
             case SymTagArrayType:

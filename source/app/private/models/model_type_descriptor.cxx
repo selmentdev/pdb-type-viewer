@@ -3,6 +3,7 @@
 #include <ptv/pdb_member_field.hxx>
 #include <ptv/pdb_member_padding.hxx>
 #include <QColor>
+#include <QTranslator>
 
 namespace ptvapp::models
 {
@@ -142,6 +143,48 @@ namespace ptvapp::models
                         auto const* padding = static_cast<const ptv::pdb_member_padding*>(this->m_member);
                         return padding->is_spurious();
                     }
+
+                    break;
+                }
+            case type_descriptor_item_role::kind:
+                {
+                    if (member_type == ptv::pdb_member_type::field)
+                    {
+                        auto const& field = static_cast<const ptv::pdb_member_field&>(*this->m_member);
+
+                        switch (field.get_kind())
+                        {
+                        case ptv::pdb_member_kind::vtable:
+                            {
+                                return QObject::tr("VTable Pointer");
+                            }
+                        default:
+                            {
+                                break;
+                            }
+                        }
+
+                        return QObject::tr("Field");
+                    }
+                    else if (member_type == ptv::pdb_member_type::inherited)
+                    {
+                        return QObject::tr("Base Type");
+                    }
+                    else if (member_type == ptv::pdb_member_type::padding)
+                    {
+                        auto const* padding = static_cast<const ptv::pdb_member_padding*>(this->m_member);
+
+                        if (padding->is_spurious())
+                        {
+                            return QObject::tr("Spurious Padding");
+                        }
+                        else
+                        {
+                            return QObject::tr("Padding");
+                        }
+                    }
+
+                    break;
                 }
             }
         }
@@ -216,6 +259,8 @@ namespace ptvapp::models
             return type_descriptor_item_role::offset;
         case 3:
             return type_descriptor_item_role::size;
+        case 4:
+            return type_descriptor_item_role::kind;
         }
 
         return type_descriptor_item_role::name;
@@ -297,6 +342,8 @@ namespace ptvapp::models
                 return tr("Offset");
             case 3:
                 return tr("Size");
+            case 4:
+                return tr("Kind");
             }
         }
 
@@ -377,7 +424,7 @@ namespace ptvapp::models
     ) const
     {
         (void)parent;
-        return 4;
+        return 5;
     }
 
     void type_descriptor_model::SetupModelData(
