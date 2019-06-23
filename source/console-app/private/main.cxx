@@ -122,7 +122,7 @@ void print_type(const ptv::pdb_type& type, const ptv::pdb_type_descriptor& descr
     {
         std::wprintf(
             L"Type: %s, Padding: %zu\n",
-            std::wstring{ type.name }.c_str(),
+            std::wstring{ type.get_name() }.c_str(),
             padding
         );
 
@@ -146,9 +146,9 @@ int main(int argc, char* argv[])
         {
             for (auto const& type : session->get_types())
             {
-                if (auto descriptor = session->get_descriptor(type); descriptor != nullptr)
+                if (auto descriptor = session->get_descriptor(*type); descriptor != nullptr)
                 {
-                    print_type(type, *descriptor);
+                    print_type(*type, *descriptor);
                 }
             }
         }

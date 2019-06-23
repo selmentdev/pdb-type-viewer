@@ -17,7 +17,7 @@ namespace ptv
         ) noexcept = 0;
 
     public:
-        virtual const std::vector<pdb_type>& get_types() const noexcept = 0;
+        virtual const std::vector<std::unique_ptr<pdb_type>>& get_types() const noexcept = 0;
 
         virtual std::unique_ptr<pdb_type_descriptor> get_descriptor(
             const pdb_type& type

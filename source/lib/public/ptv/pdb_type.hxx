@@ -1,10 +1,16 @@
 #pragma once
 #include <string_view>
+#include <memory>
 
 namespace ptv
 {
-    struct pdb_type final
+    class pdb_type
     {
-        std::wstring_view name;
+    public:
+        virtual ~pdb_type() noexcept = default;
+
+        virtual std::wstring_view get_name() const noexcept = 0;
+
+        virtual std::unique_ptr<pdb_type> clone() const noexcept = 0;
     };
 }

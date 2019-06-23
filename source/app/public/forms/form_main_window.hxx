@@ -15,6 +15,7 @@ class QSortFilterProxyModel;
 namespace ptvapp::models
 {
     class type_descriptor_model;
+    class type_list_model;
 }
 
 namespace ptvapp::forms
@@ -45,7 +46,7 @@ namespace ptvapp::forms
         QMenu* m_main_menu;
 
     private:
-        QStringListModel* m_type_list_model;
+        ptvapp::models::type_list_model* m_type_list_model;
         QSortFilterProxyModel* m_type_list_model_proxy;
         QListView* m_type_list_view;
         QDockWidget* m_dock_pane_type_list;

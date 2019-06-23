@@ -83,26 +83,11 @@ namespace ptvapp::models
                     {
                         auto const* field = static_cast<const ptv::pdb_member_field*>(this->m_member);
 
-                        if (auto const bits = field->get_bits(); bits.has_value())
-                        {
-                            auto const& value = bits.value();
-
-                            return QString::fromStdWString(
-                                std::wstring{
-                                    field->get_name()
-                                }
-                            ) + QString{ " <%1:%2>" }
-                                .arg(value.first)
-                                .arg(value.second);
-                        }
-                        else
-                        {
-                            return QString::fromStdWString(
-                                std::wstring{
-                                    field->get_name()
-                                }
-                            );
-                        }
+                        return QString::fromStdWString(
+                            std::wstring{
+                                field->get_name()
+                            }
+                        );
                     }
                     else if (member_type == ptv::pdb_member_type::padding)
                     {
@@ -115,6 +100,25 @@ namespace ptvapp::models
                         else
                         {
                             return "<<padding>>";
+                        }
+                    }
+
+                    break;
+                }
+
+            case type_descriptor_item_role::bits:
+                {
+                    if (member_type == ptv::pdb_member_type::field)
+                    {
+                        auto const* field = static_cast<const ptv::pdb_member_field*>(this->m_member);
+
+                        if (auto const bits = field->get_bits(); bits.has_value())
+                        {
+                            auto const value = bits.value();
+
+                            return QString{ "<%1:%2>" }
+                                .arg(value.first)
+                                .arg(value.second);
                         }
                     }
 
@@ -270,8 +274,10 @@ namespace ptvapp::models
         case 3:
             return type_descriptor_item_role::size;
         case 4:
-            return type_descriptor_item_role::padding;
+            return type_descriptor_item_role::bits;
         case 5:
+            return type_descriptor_item_role::padding;
+        case 6:
             return type_descriptor_item_role::kind;
         }
 
@@ -355,8 +361,10 @@ namespace ptvapp::models
             case 3:
                 return tr("Size");
             case 4:
-                return tr("Padding");
+                return tr("Bits");
             case 5:
+                return tr("Padding");
+            case 6:
                 return tr("Kind");
             }
         }
@@ -438,7 +446,7 @@ namespace ptvapp::models
     ) const
     {
         (void)parent;
-        return 6;
+        return 7;
     }
 
     void type_descriptor_model::SetupModelData(

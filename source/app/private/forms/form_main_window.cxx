@@ -1,6 +1,7 @@
 #include <forms/form_main_window.hxx>
 #include <QtWidgets>
 #include <models/model_type_descriptor.hxx>
+#include <models/model_type_list.hxx>
 
 namespace ptvapp::forms
 {
@@ -36,10 +37,10 @@ namespace ptvapp::forms
 
             for (auto const& type : m_pdb_file->get_types())
             {
-                list << QString::fromStdWString(std::wstring{ type.name });
+                list << QString::fromStdWString(std::wstring{ type->get_name() });
             }
 
-            m_type_list_model->setStringList(list);
+            m_type_list_model->set_pdb_file(m_pdb_file.get());
         }
     }
 
@@ -66,7 +67,7 @@ namespace ptvapp::forms
     void main_window::create_controls() noexcept
     {
         this->m_dock_pane_type_list = new QDockWidget(tr("Type List"), this);
-        this->m_type_list_model = new QStringListModel(this);
+        this->m_type_list_model = new ptvapp::models::type_list_model(this);
 
         this->m_type_list_model_proxy = new QSortFilterProxyModel(this);
         this->m_type_list_model_proxy->setSourceModel(this->m_type_list_model);
@@ -117,16 +118,19 @@ namespace ptvapp::forms
             &QItemSelectionModel::currentChanged,
             [&](const QModelIndex& current, [[maybe_unused]] const QModelIndex& previous)
             {
-                (void)previous;
-
-                if (auto type = this->m_type_list_model_proxy->data(current).toString(); !type.isEmpty())
+                if (current.isValid())
                 {
-                    auto wtype = type.toStdWString();
-                    ptv::pdb_type wrapper{ wtype };
-
-                    if (auto descriptor = this->m_pdb_file->get_descriptor(wrapper); descriptor != nullptr)
+                    if (auto const underlying = this->m_type_list_model_proxy->mapToSource(current); underlying.isValid())
                     {
-                        this->m_type_model->from_type_descriptor(std::move(descriptor));
+                        if (auto const* type = static_cast<const ptv::pdb_type*>(underlying.internalPointer()); type != nullptr)
+                        {
+                            if (auto descriptor = this->m_pdb_file->get_descriptor(*type); descriptor != nullptr)
+                            {
+                                this->m_type_model->from_type_descriptor(
+                                    std::move(descriptor)
+                                );
+                            }
+                        }
                     }
                 }
             }

@@ -370,13 +370,51 @@ namespace ptv::helpers
 
 namespace ptv::impl
 {
+    class pdb_type_impl : public pdb_type
+    {
+    private:
+        std::wstring m_name;
+        Microsoft::WRL::ComPtr<IDiaSymbol> m_symbol;
+
+    public:
+        pdb_type_impl(
+            Microsoft::WRL::ComPtr<IDiaSymbol> symbol
+        ) noexcept
+            : m_name{ dia::name(symbol) }
+            , m_symbol{ symbol }
+        {
+        }
+
+        virtual ~pdb_type_impl() noexcept = default;
+
+        virtual std::wstring_view get_name() const noexcept override
+        {
+            return m_name;
+        }
+
+        const Microsoft::WRL::ComPtr<IDiaSymbol>& get_symbol() const noexcept
+        {
+            return m_symbol;
+        }
+
+        virtual std::unique_ptr<pdb_type> clone() const noexcept override
+        {
+            return std::make_unique<pdb_type_impl>(
+                this->m_symbol
+            );
+        }
+    };
+}
+
+namespace ptv::impl
+{
     class pdb_file_impl : public pdb_file
     {
     private:
         Microsoft::WRL::ComPtr<IDiaSession> m_session;
         Microsoft::WRL::ComPtr<IDiaDataSource> m_source;
         Microsoft::WRL::ComPtr<IDiaSymbol> m_global_scope;
-        std::vector<pdb_type> m_types;
+        std::vector<std::unique_ptr<pdb_type>> m_types;
 
     public:
         pdb_file_impl() noexcept = default;
@@ -434,23 +472,34 @@ namespace ptv::impl
             }
 
 
-            std::set<std::wstring_view> unique_types{};
+            std::map<std::wstring_view, Microsoft::WRL::ComPtr<IDiaSymbol>> unique_types{};
 
             if (auto enum_types = dia::find_children(global_scope, SymTagUDT); enum_types != nullptr)
             {
                 for (auto child = dia::next(enum_types); child != nullptr; child = dia::next(enum_types))
                 {
                     auto name = dia::name(child);
-                    unique_types.insert(name);
+                    unique_types.insert(
+                        std::make_pair(
+                            name,
+                            child
+                        )
+                    );
                 }
             }
 
-            std::vector<ptv::pdb_type> types{};
+            std::vector<std::unique_ptr<ptv::pdb_type>> types{};
             types.reserve(unique_types.size());
 
             for (auto const& unique : unique_types)
             {
-                types.push_back({ unique });
+                types.push_back(
+                    std::move(
+                        std::make_unique<ptv::impl::pdb_type_impl>(
+                            unique.second
+                        )
+                    )
+                );
             }
 
             m_types = std::move(types);
@@ -462,7 +511,7 @@ namespace ptv::impl
         }
 
 
-        virtual const std::vector<pdb_type>& get_types() const noexcept override
+        virtual const std::vector<std::unique_ptr<pdb_type>>& get_types() const noexcept override
         {
             return m_types;
         }
@@ -946,16 +995,15 @@ namespace ptv::impl
 
 
             //
-            // TODO:
-            //      Because DIA SDK reports sizeof 0 for some type members, we need to mark them as
-            //      missing detailed size information.
+            //  Because DIA SDK reports sizeof 0 for some type members, we need to mark them as
+            //  missing detailed size information.
             //
-            //      This requires us to find sequence:
+            //  This requires us to find sequence:
             //
-            //          <symbol, offset:x, size:0>
-            //          <padding, offset:x, size:not 0>
+            //      <symbol, offset:x, size:0>
+            //      <padding, offset:x, size:not 0>
             //
-            //      and replace them with marker.
+            //  and replace them with marker.
             //
 
             if (symbols.size() > 1)
@@ -1179,23 +1227,15 @@ namespace ptv::impl
             const pdb_type& type
         ) const noexcept override
         {
-            if (auto enum_types = dia::find_children(m_global_scope, SymTagUDT); enum_types != nullptr)
-            {
-                for (auto child = dia::next(enum_types); child != nullptr; child = dia::next(enum_types))
-                {
-                    auto name = dia::name(child);
+            auto const& typed = static_cast<ptv::impl::pdb_type_impl const&>(type);
 
-                    if (name == type.name)
-                    {
-                        std::vector<std::unique_ptr<pdb_abstract_type_member>> members{};
-                        members.emplace_back(create_member_inherited(child));
+            std::vector<std::unique_ptr<pdb_abstract_type_member>> members{};
 
-                        return std::make_unique<pdb_type_descriptor>(std::move(members));
-                    }
-                }
-            }
+            members.emplace_back(
+                create_member_inherited(typed.get_symbol())
+            );
 
-            return {};
+            return std::make_unique<pdb_type_descriptor>(std::move(members));
         }
     };
 }
