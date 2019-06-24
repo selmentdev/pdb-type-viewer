@@ -5,82 +5,88 @@
 
 namespace ptvapp::models
 {
-    enum class type_descriptor_item_role
+    enum class TypeDescriptorElementRole
     {
-        type,
-        name,
-        size,
-        offset,
-        kind,
-        bits,
-        padding,
-        is_padding,
-        is_spurious,
+        Type,
+        Name,
+        Size,
+        Offset,
+        Kind,
+        Bits,
+        Padding,
+        IsPadding,
+        IsSpurious,
     };
 
-    class type_descriptor_item
+    class TypeDescriptorElement
     {
     private:
-        QList<type_descriptor_item*> m_children;
-        type_descriptor_item* m_parent;
-        ptv::pdb_abstract_type_member* m_member;
+        QList<TypeDescriptorElement*> m_Children;
+        TypeDescriptorElement* m_Parent;
+        ptv::pdb_abstract_type_member* m_Member;
 
     public:
-        explicit type_descriptor_item(
+        explicit TypeDescriptorElement(
             ptv::pdb_abstract_type_member* member,
-            type_descriptor_item* parent = nullptr
+            TypeDescriptorElement* parent = nullptr
         ) noexcept;
 
-        ~type_descriptor_item() noexcept;
+        ~TypeDescriptorElement() noexcept;
 
     public:
-        void append_child(
-            type_descriptor_item* child
+        void AppendChild(
+            TypeDescriptorElement* child
         ) noexcept;
 
-        type_descriptor_item* get_child(
+        TypeDescriptorElement* GetChild(
             int index
         ) const noexcept;
 
-        int children_count() const noexcept;
+        int GetChildrenCount() const noexcept;
 
         QVariant data(
-            type_descriptor_item_role role
+            TypeDescriptorElementRole role
         ) const noexcept;
 
-        int get_row_index() const noexcept;
+        int GetRowIndex() const noexcept;
 
-        type_descriptor_item* get_parent() const noexcept;
+        TypeDescriptorElement* GetParent() const noexcept;
 
-        void clear() noexcept;
+        void Clear() noexcept;
 
     public:
-        ptv::pdb_abstract_type_member* get_member() const noexcept
+        ptv::pdb_abstract_type_member* GetMember() const noexcept
         {
-            return m_member;
+            return m_Member;
         }
     };
 }
 
 namespace ptvapp::models
 {
-    class type_descriptor_model : public QAbstractItemModel
+    class TypeDescriptorModel : public QAbstractItemModel
     {
         Q_OBJECT
     private:
-        type_descriptor_item* m_Root;
+        TypeDescriptorElement* m_Root;
         std::unique_ptr<ptv::pdb_type_descriptor> m_CurrentDescriptor;
 
     public:
-        explicit type_descriptor_model(
+        explicit TypeDescriptorModel(
             QObject* parent = nullptr
         ) noexcept;
 
-        ~type_descriptor_model() noexcept;
+        ~TypeDescriptorModel() noexcept;
 
     public:
-        void from_type_descriptor(
+        void FromDescriptor(
             std::unique_ptr<ptv::pdb_type_descriptor>&& descriptor
+        ) noexcept;
+
+    private:
+        void SetupModelData(
+            const std::vector<std::unique_ptr<ptv::pdb_abstract_type_member>>& members,
+            TypeDescriptorElement* parent
         ) noexcept;
 
     public: // interface QAbstractItemModel
@@ -116,11 +122,5 @@ namespace ptvapp::models
         int columnCount(
             const QModelIndex& parent = {}
         ) const override;
-
-    private:
-        void SetupModelData(
-            const std::vector<std::unique_ptr<ptv::pdb_abstract_type_member>>& members,
-            type_descriptor_item* parent
-        ) noexcept;
     };
 }

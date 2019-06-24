@@ -6,32 +6,32 @@
 
 namespace ptvapp::forms
 {
-    main_window::main_window() noexcept
+    MainWindow::MainWindow() noexcept
     {
         this->setWindowTitle(tr("PDB Type Viewer"));
         this->setUnifiedTitleAndToolBarOnMac(true);
 
-        this->create_actions();
-        this->create_controls();
-        this->create_status_bar();
+        this->CreateActions();
+        this->CreateControls();
+        this->CreateStatusBar();
     }
 
-    void main_window::about() noexcept
+    void MainWindow::ShowAbout() noexcept
     {
-        auto* about = new forms::about_box{ this };
+        auto* about = new forms::AboutBox{ this };
         about->setModal(true);
         about->show();
     }
 
-    void main_window::load() noexcept
+    void MainWindow::LoadPdb() noexcept
     {
         if (auto path = QFileDialog::getOpenFileName(this, {}, {}, tr("PDB Files (*.pdb)")); !path.isEmpty())
         {
-            this->load_from_path(path);
+            this->LoadFromPath(path);
         }
     }
 
-    void main_window::load_from_path(QStringView path) noexcept
+    void MainWindow::LoadFromPath(QStringView path) noexcept
     {
         QProgressDialog dialog{ this };
         dialog.setWindowFlag(Qt::MSWindowsFixedSizeDialogHint);
@@ -41,6 +41,7 @@ namespace ptvapp::forms
         dialog.setAutoClose(true);
         dialog.setModal(true);
         dialog.show();
+
         qApp->processEvents();
 
         auto pdbfile = ptv::create();
@@ -48,11 +49,12 @@ namespace ptvapp::forms
         {
             dialog.setMaximum(total);
             dialog.setValue(current);
+
             qApp->processEvents();
         }))
         {
-            m_pdb_file = std::move(pdbfile);
-            m_type_list_model->set_pdb_file(m_pdb_file.get());
+            m_PdbFile = std::move(pdbfile);
+            m_TypeListModel->SetPdbFile(m_PdbFile.get());
 
             this->setWindowTitle(
                 tr("PDB Type Viewer") + QString{ " - %1" }.arg(path)
@@ -60,68 +62,67 @@ namespace ptvapp::forms
         }
     }
 
-    void main_window::create_actions() noexcept
+    void MainWindow::CreateActions() noexcept
     {
-        auto* menu_file = menuBar()->addMenu(tr("&File"));
+        auto* menuFile = menuBar()->addMenu(tr("&File"));
 
-        auto* action_menu_file_open = menu_file->addAction(tr("&Open"), this, &main_window::load);
-        action_menu_file_open->setShortcuts(QKeySequence::Open);
+        auto* actionMenuFileOpen = menuFile->addAction(tr("&Open"), this, &MainWindow::LoadPdb);
+        actionMenuFileOpen->setShortcuts(QKeySequence::Open);
 
-        auto* action_menu_file_close = menu_file->addAction(tr("&Close"), this, &QWidget::close);
-        action_menu_file_close->setShortcuts(QKeySequence::Close);
+        auto* actionMenuFileClose = menuFile->addAction(tr("&Close"), this, &QWidget::close);
+        actionMenuFileClose->setShortcuts(QKeySequence::Close);
 
-        auto* menu_help = menuBar()->addMenu(tr("&Help"));
+        auto* menuHelp = menuBar()->addMenu(tr("&Help"));
 
-        [[maybe_unused]] auto* action_menu_help_about = menu_help->addAction(tr("&About"), this, &main_window::about);
+        [[maybe_unused]] auto* actionMenuHelpAbout = menuHelp->addAction(tr("&About"), this, &MainWindow::ShowAbout);
     }
 
-    void main_window::create_status_bar() noexcept
+    void MainWindow::CreateStatusBar() noexcept
     {
         statusBar()->showMessage(tr("Ready"));
     }
 
-    void main_window::create_controls() noexcept
+    void MainWindow::CreateControls() noexcept
     {
-        this->m_dock_pane_type_list = new QDockWidget(tr("Type List"), this);
-        this->m_type_list_model = new ptvapp::models::type_list_model(this);
+        this->m_DockTypeList = new QDockWidget(tr("Type List"), this);
+        this->m_TypeListModel = new ptvapp::models::TypeListModel(this);
 
-        this->m_type_list_model_proxy = new QSortFilterProxyModel(this);
-        this->m_type_list_model_proxy->setSourceModel(this->m_type_list_model);
+        this->m_TypeListModelProxy = new QSortFilterProxyModel(this);
+        this->m_TypeListModelProxy->setSourceModel(this->m_TypeListModel);
 
         auto* container = new QWidget();
 
-        this->m_type_list_view = new QListView(container);
-        this->m_type_list_view->setModel(this->m_type_list_model_proxy);
-        this->m_type_list_view->setEditTriggers(QAbstractItemView::NoEditTriggers);
+        this->m_TypeListView = new QListView(container);
+        this->m_TypeListView->setModel(this->m_TypeListModelProxy);
+        this->m_TypeListView->setEditTriggers(QAbstractItemView::NoEditTriggers);
 
         auto* filter = new QLineEdit(container);
 
         auto* vbox = new QVBoxLayout();
         vbox->addWidget(filter, 0);
-        vbox->addWidget(this->m_type_list_view, 1);
+        vbox->addWidget(this->m_TypeListView, 1);
         vbox->setContentsMargins({});
 
         container->setLayout(vbox);
 
-        this->m_dock_pane_type_list->setWidget(container);
+        this->m_DockTypeList->setWidget(container);
 
+        this->addDockWidget(Qt::LeftDockWidgetArea, this->m_DockTypeList);
 
-        this->addDockWidget(Qt::LeftDockWidgetArea, this->m_dock_pane_type_list);
+        this->m_TypeModel = new ptvapp::models::TypeDescriptorModel(this);
+        this->m_TypeView = new QTreeView(this);
+        this->m_TypeView->setModel(this->m_TypeModel);
+        this->m_TypeView->setSelectionMode(QTreeView::MultiSelection);
+        this->m_TypeView->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
 
-        this->m_type_model = new ptvapp::models::type_descriptor_model(this);
-        this->m_type_view = new QTreeView(this);
-        this->m_type_view->setModel(this->m_type_model);
-        this->m_type_view->setSelectionMode(QTreeView::MultiSelection);
-        this->m_type_view->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
-
-        this->setCentralWidget(this->m_type_view);
+        this->setCentralWidget(this->m_TypeView);
 
         connect(
             filter,
             &QLineEdit::textChanged,
             [&](const QString& value)
             {
-                this->m_type_list_model_proxy->setFilterRegExp(
+                this->m_TypeListModelProxy->setFilterRegExp(
                     QRegExp(
                         value,
                         Qt::CaseInsensitive,
@@ -132,7 +133,7 @@ namespace ptvapp::forms
         );
 
         connect(
-            this->m_type_list_view->selectionModel(),
+            this->m_TypeListView->selectionModel(),
             &QItemSelectionModel::currentChanged,
             [&](const QModelIndex& current, [[maybe_unused]] const QModelIndex& previous)
             {
@@ -140,13 +141,13 @@ namespace ptvapp::forms
 
                 if (current.isValid())
                 {
-                    if (auto const underlying = this->m_type_list_model_proxy->mapToSource(current); underlying.isValid())
+                    if (auto const underlying = this->m_TypeListModelProxy->mapToSource(current); underlying.isValid())
                     {
                         if (auto const* type = static_cast<const ptv::pdb_type*>(underlying.internalPointer()); type != nullptr)
                         {
-                            if (auto descriptor = this->m_pdb_file->get_descriptor(*type); descriptor != nullptr)
+                            if (auto descriptor = this->m_PdbFile->get_descriptor(*type); descriptor != nullptr)
                             {
-                                this->m_type_model->from_type_descriptor(
+                                this->m_TypeModel->FromDescriptor(
                                     std::move(descriptor)
                                 );
                             }
@@ -157,11 +158,11 @@ namespace ptvapp::forms
         );
 
         connect(
-            this->m_type_model,
+            this->m_TypeModel,
             &QAbstractItemModel::modelReset,
             [&]()
             {
-                this->m_type_view->expandAll();
+                this->m_TypeView->expandAll();
             }
         );
     }

@@ -3,13 +3,13 @@
 
 namespace ptvapp::forms
 {
-    class about_box
+    class AboutBox
         : public QDialog
     {
         Q_OBJECT;
     public:
-        explicit about_box(QWidget* parent) noexcept;
-        ~about_box() noexcept;
+        explicit AboutBox(QWidget* parent) noexcept;
+        ~AboutBox() noexcept;
 
     private:
         void CreateControls() noexcept;

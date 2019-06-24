@@ -14,46 +14,43 @@ class QSortFilterProxyModel;
 
 namespace ptvapp::models
 {
-    class type_descriptor_model;
-    class type_list_model;
+    class TypeDescriptorModel;
+    class TypeListModel;
 }
 
 namespace ptvapp::forms
 {
-    class main_window
+    class MainWindow
         : public QMainWindow
     {
         Q_OBJECT;
 
     public:
-        main_window() noexcept;
+        MainWindow() noexcept;
 
     public:
-        void load_from_path(QStringView path) noexcept;
+        void LoadFromPath(QStringView path) noexcept;
 
     private slots:
-        void about() noexcept;
-        void load() noexcept;
+        void ShowAbout() noexcept;
+        void LoadPdb() noexcept;
 
     private:
-        void create_actions() noexcept;
-        void create_status_bar() noexcept;
-        void create_controls() noexcept;
+        void CreateActions() noexcept;
+        void CreateStatusBar() noexcept;
+        void CreateControls() noexcept;
 
     private:
-        std::unique_ptr<ptv::pdb_file> m_pdb_file;
+        std::unique_ptr<ptv::pdb_file> m_PdbFile;
 
     private:
-        QMenu* m_main_menu;
+        ptvapp::models::TypeListModel* m_TypeListModel;
+        QSortFilterProxyModel* m_TypeListModelProxy;
+        QListView* m_TypeListView;
+        QDockWidget* m_DockTypeList;
 
     private:
-        ptvapp::models::type_list_model* m_type_list_model;
-        QSortFilterProxyModel* m_type_list_model_proxy;
-        QListView* m_type_list_view;
-        QDockWidget* m_dock_pane_type_list;
-
-    private:
-        ptvapp::models::type_descriptor_model* m_type_model;
-        QTreeView* m_type_view;
+        ptvapp::models::TypeDescriptorModel* m_TypeModel;
+        QTreeView* m_TypeView;
     };
 }

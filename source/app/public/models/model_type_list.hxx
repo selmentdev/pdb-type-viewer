@@ -5,28 +5,43 @@
 
 namespace ptvapp::models
 {
-    class type_list_model : public QAbstractItemModel
+    class TypeListModel : public QAbstractItemModel
     {
         Q_OBJECT
     private:
-        const ptv::pdb_file* m_file;
+        const ptv::pdb_file* m_File;
 
     public:
-        explicit type_list_model(
+        explicit TypeListModel(
             QObject* parent = nullptr
         ) noexcept;
 
-        virtual ~type_list_model() noexcept;
+        virtual ~TypeListModel() noexcept;
 
-        void set_pdb_file(const ptv::pdb_file* file) noexcept;
+        void SetPdbFile(const ptv::pdb_file* file) noexcept;
 
     public:
-        int rowCount(const QModelIndex& parent = {}) const override;
+        virtual int rowCount(
+            const QModelIndex& parent = {}
+        ) const override;
 
-        QVariant data(const QModelIndex& index, int role = Qt::DisplayRole) const override;
+        virtual QVariant data(
+            const QModelIndex& index,
+            int role = Qt::DisplayRole
+        ) const override;
 
-        virtual QModelIndex index(int row, int column, const QModelIndex& parent = {}) const override;
-        virtual QModelIndex parent(const QModelIndex& child) const override;
-        virtual int columnCount(const QModelIndex& parent = {}) const override;
+        virtual QModelIndex index(
+            int row,
+            int column,
+            const QModelIndex& parent = {}
+        ) const override;
+
+        virtual QModelIndex parent(
+            const QModelIndex& child
+        ) const override;
+
+        virtual int columnCount(
+            const QModelIndex& parent = {}
+        ) const override;
     };
 }

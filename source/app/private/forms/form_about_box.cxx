@@ -3,7 +3,7 @@
 
 namespace ptvapp::forms
 {
-    about_box::about_box(QWidget* parent) noexcept
+    AboutBox::AboutBox(QWidget* parent) noexcept
         :QDialog(parent)
     {
         this->setWindowTitle(tr("About PDB Type Viewer"));
@@ -11,11 +11,11 @@ namespace ptvapp::forms
         this->CreateControls();
     }
  
-    about_box::~about_box() noexcept
+    AboutBox::~AboutBox() noexcept
     {
     }
 
-    void about_box::CreateControls() noexcept
+    void AboutBox::CreateControls() noexcept
     {
         if (auto* layout = new QVBoxLayout())
         {
@@ -60,7 +60,7 @@ namespace ptvapp::forms
             if (auto* buttonPane = new QWidget(this))
             {
                 auto* okButton = new QPushButton(tr("&OK"), buttonPane);
-                connect(okButton, &QPushButton::clicked, this, &about_box::close);
+                connect(okButton, &QPushButton::clicked, this, &AboutBox::close);
 
                 if (auto* buttonPaneLayout = new QHBoxLayout())
                 {

@@ -15,12 +15,12 @@ int main(int argc, char* argv[])
     QCoreApplication::setApplicationName("Pdb Type Viewer");
     QCoreApplication::setApplicationVersion(QT_VERSION_STR);
 
-    ptvapp::forms::main_window main_window{};
+    ptvapp::forms::MainWindow main_window{};
 
     if (argc == 2)
     {
         QString path{ argv[1] };
-        main_window.load_from_path(path);
+        main_window.LoadFromPath(path);
     }
 
     main_window.show();

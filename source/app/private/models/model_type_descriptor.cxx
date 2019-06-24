@@ -7,55 +7,55 @@
 
 namespace ptvapp::models
 {
-    type_descriptor_item::type_descriptor_item(
+    TypeDescriptorElement::TypeDescriptorElement(
         ptv::pdb_abstract_type_member* member,
-        type_descriptor_item* parent
+        TypeDescriptorElement* parent
     ) noexcept
-        : m_children{}
-        , m_parent{ parent }
-        , m_member{ member }
+        : m_Children{}
+        , m_Parent{ parent }
+        , m_Member{ member }
     {
     }
 
-    type_descriptor_item::~type_descriptor_item() noexcept
+    TypeDescriptorElement::~TypeDescriptorElement() noexcept
     {
-        qDeleteAll(this->m_children);
+        qDeleteAll(this->m_Children);
     }
 
-    void type_descriptor_item::append_child(
-        type_descriptor_item* child
+    void TypeDescriptorElement::AppendChild(
+        TypeDescriptorElement* child
     ) noexcept
     {
-        this->m_children.append(child);
+        this->m_Children.append(child);
     }
 
-    type_descriptor_item* type_descriptor_item::get_child(
+    TypeDescriptorElement* TypeDescriptorElement::GetChild(
         int index
     ) const noexcept
     {
-        return this->m_children.value(index);
+        return this->m_Children.value(index);
     }
 
-    int type_descriptor_item::children_count() const noexcept
+    int TypeDescriptorElement::GetChildrenCount() const noexcept
     {
-        return this->m_children.size();
+        return this->m_Children.size();
     }
 
-    QVariant type_descriptor_item::data(
-        type_descriptor_item_role role
+    QVariant TypeDescriptorElement::data(
+        TypeDescriptorElementRole role
     ) const noexcept
     {
-        if (this->m_member != nullptr)
+        if (this->m_Member != nullptr)
         {
-            auto const member_type = this->m_member->get_member_type();
+            auto const member_type = this->m_Member->get_member_type();
 
             switch (role)
             {
-            case type_descriptor_item_role::type:
+            case TypeDescriptorElementRole::Type:
                 {
                     if (member_type == ptv::pdb_member_type::field)
                     {
-                        auto const* field = static_cast<const ptv::pdb_member_field*>(this->m_member);
+                        auto const* field = static_cast<const ptv::pdb_member_field*>(this->m_Member);
 
                         return QString::fromStdWString(
                             std::wstring{
@@ -65,7 +65,7 @@ namespace ptvapp::models
                     }
                     else if (member_type == ptv::pdb_member_type::inherited)
                     {
-                        auto const* inherited = static_cast<const ptv::pdb_member_inherited*>(this->m_member);
+                        auto const* inherited = static_cast<const ptv::pdb_member_inherited*>(this->m_Member);
 
                         return QString::fromStdWString(
                             std::wstring{
@@ -77,11 +77,11 @@ namespace ptvapp::models
                     break;
                 }
 
-            case type_descriptor_item_role::name:
+            case TypeDescriptorElementRole::Name:
                 {
                     if (member_type == ptv::pdb_member_type::field)
                     {
-                        auto const* field = static_cast<const ptv::pdb_member_field*>(this->m_member);
+                        auto const* field = static_cast<const ptv::pdb_member_field*>(this->m_Member);
 
                         return QString::fromStdWString(
                             std::wstring{
@@ -91,7 +91,7 @@ namespace ptvapp::models
                     }
                     else if (member_type == ptv::pdb_member_type::padding)
                     {
-                        auto const* padding = static_cast<const ptv::pdb_member_padding*>(this->m_member);
+                        auto const* padding = static_cast<const ptv::pdb_member_padding*>(this->m_Member);
 
                         if (padding->is_spurious())
                         {
@@ -106,11 +106,11 @@ namespace ptvapp::models
                     break;
                 }
 
-            case type_descriptor_item_role::bits:
+            case TypeDescriptorElementRole::Bits:
                 {
                     if (member_type == ptv::pdb_member_type::field)
                     {
-                        auto const* field = static_cast<const ptv::pdb_member_field*>(this->m_member);
+                        auto const* field = static_cast<const ptv::pdb_member_field*>(this->m_Member);
 
                         if (auto const bits = field->get_bits(); bits.has_value())
                         {
@@ -125,46 +125,46 @@ namespace ptvapp::models
                     break;
                 }
 
-            case type_descriptor_item_role::size:
+            case TypeDescriptorElementRole::Size:
                 {
-                    return this->m_member->get_size();
+                    return this->m_Member->get_size();
                 }
 
-            case type_descriptor_item_role::offset:
+            case TypeDescriptorElementRole::Offset:
                 {
-                    return this->m_member->get_offset();
+                    return this->m_Member->get_offset();
                 }
 
-            case type_descriptor_item_role::is_padding:
+            case TypeDescriptorElementRole::IsPadding:
                 {
                     return member_type == ptv::pdb_member_type::padding;
                 }
 
-            case type_descriptor_item_role::is_spurious:
+            case TypeDescriptorElementRole::IsSpurious:
                 {
                     if (member_type == ptv::pdb_member_type::padding)
                     {
-                        auto const* padding = static_cast<const ptv::pdb_member_padding*>(this->m_member);
+                        auto const* padding = static_cast<const ptv::pdb_member_padding*>(this->m_Member);
                         return padding->is_spurious();
                     }
 
                     break;
                 }
-            case type_descriptor_item_role::padding:
+            case TypeDescriptorElementRole::Padding:
                 {
                     if (member_type == ptv::pdb_member_type::inherited)
                     {
-                        auto const* padding = static_cast<const ptv::pdb_member_inherited*>(this->m_member);
+                        auto const* padding = static_cast<const ptv::pdb_member_inherited*>(this->m_Member);
                         return padding->get_padding();
                     }
 
                     break;
                 }
-            case type_descriptor_item_role::kind:
+            case TypeDescriptorElementRole::Kind:
                 {
                     if (member_type == ptv::pdb_member_type::field)
                     {
-                        auto const& field = static_cast<const ptv::pdb_member_field&>(*this->m_member);
+                        auto const& field = static_cast<const ptv::pdb_member_field&>(*this->m_Member);
 
                         switch (field.get_kind())
                         {
@@ -186,7 +186,7 @@ namespace ptvapp::models
                     }
                     else if (member_type == ptv::pdb_member_type::padding)
                     {
-                        auto const* padding = static_cast<const ptv::pdb_member_padding*>(this->m_member);
+                        auto const* padding = static_cast<const ptv::pdb_member_padding*>(this->m_Member);
 
                         if (padding->is_spurious())
                         {
@@ -206,46 +206,46 @@ namespace ptvapp::models
         return {};
     }
 
-    int type_descriptor_item::get_row_index() const noexcept
+    int TypeDescriptorElement::GetRowIndex() const noexcept
     {
-        if (this->m_parent != nullptr)
+        if (this->m_Parent != nullptr)
         {
-            return this->m_parent->m_children.indexOf(
-                const_cast<type_descriptor_item*>(this)
+            return this->m_Parent->m_Children.indexOf(
+                const_cast<TypeDescriptorElement*>(this)
             );
         }
 
         return 0;
     }
 
-    type_descriptor_item* type_descriptor_item::get_parent() const noexcept
+    TypeDescriptorElement* TypeDescriptorElement::GetParent() const noexcept
     {
-        return this->m_parent;
+        return this->m_Parent;
     }
 
-    void type_descriptor_item::clear() noexcept
+    void TypeDescriptorElement::Clear() noexcept
     {
-        qDeleteAll(this->m_children);
-        this->m_children.clear();
+        qDeleteAll(this->m_Children);
+        this->m_Children.clear();
     }
 }
 
 namespace ptvapp::models
 {
-    type_descriptor_model::type_descriptor_model(
+    TypeDescriptorModel::TypeDescriptorModel(
         QObject* parent
     ) noexcept
         : QAbstractItemModel{ parent }
-        , m_Root{ new type_descriptor_item(nullptr, nullptr) }
+        , m_Root{ new TypeDescriptorElement(nullptr, nullptr) }
     {
     }
 
-    type_descriptor_model::~type_descriptor_model() noexcept
+    TypeDescriptorModel::~TypeDescriptorModel() noexcept
     {
         delete m_Root;
     }
 
-    void type_descriptor_model::from_type_descriptor(
+    void TypeDescriptorModel::FromDescriptor(
         std::unique_ptr<ptv::pdb_type_descriptor>&& descriptor
     ) noexcept
     {
@@ -255,47 +255,47 @@ namespace ptvapp::models
         delete this->m_Root;
         this->m_Root = nullptr;
 
-        this->m_Root = new type_descriptor_item(nullptr, nullptr);
+        this->m_Root = new TypeDescriptorElement(nullptr, nullptr);
         this->SetupModelData(this->m_CurrentDescriptor->get_members(), m_Root);
 
         this->endResetModel();
     }
 
-    static type_descriptor_item_role MapRole(int column) noexcept
+    static TypeDescriptorElementRole MapRole(int column) noexcept
     {
         switch (column)
         {
         case 0:
-            return type_descriptor_item_role::type;
+            return TypeDescriptorElementRole::Type;
         case 1:
-            return type_descriptor_item_role::name;
+            return TypeDescriptorElementRole::Name;
         case 2:
-            return type_descriptor_item_role::offset;
+            return TypeDescriptorElementRole::Offset;
         case 3:
-            return type_descriptor_item_role::size;
+            return TypeDescriptorElementRole::Size;
         case 4:
-            return type_descriptor_item_role::bits;
+            return TypeDescriptorElementRole::Bits;
         case 5:
-            return type_descriptor_item_role::padding;
+            return TypeDescriptorElementRole::Padding;
         case 6:
-            return type_descriptor_item_role::kind;
+            return TypeDescriptorElementRole::Kind;
         }
 
-        return type_descriptor_item_role::padding;
+        return TypeDescriptorElementRole::Padding;
     }
 
-    QVariant type_descriptor_model::data(
+    QVariant TypeDescriptorModel::data(
         const QModelIndex& index,
         int role
     ) const
     {
         if (index.isValid())
         {
-            auto const* item = static_cast<type_descriptor_item*>(index.internalPointer());
+            auto const* item = static_cast<TypeDescriptorElement*>(index.internalPointer());
 
             if (role == Qt::BackgroundRole)
             {
-                if (auto const* member = item->get_member(); member != nullptr)
+                if (auto const* member = item->GetMember(); member != nullptr)
                 {
                     auto const member_type = member->get_member_type();
 
@@ -330,7 +330,7 @@ namespace ptvapp::models
         return {};
     }
 
-    Qt::ItemFlags type_descriptor_model::flags(
+    Qt::ItemFlags TypeDescriptorModel::flags(
         const QModelIndex& index
     ) const
     {
@@ -342,7 +342,7 @@ namespace ptvapp::models
         return {};
     }
 
-    QVariant type_descriptor_model::headerData(
+    QVariant TypeDescriptorModel::headerData(
         int section,
         Qt::Orientation orientation,
         int role
@@ -372,7 +372,7 @@ namespace ptvapp::models
         return {};
     }
 
-    QModelIndex type_descriptor_model::index(
+    QModelIndex TypeDescriptorModel::index(
         int row,
         int column,
         const QModelIndex& parent
@@ -380,18 +380,18 @@ namespace ptvapp::models
     {
         if (this->hasIndex(row, column, parent))
         {
-            type_descriptor_item* root{};
+            TypeDescriptorElement* root{};
 
             if (parent.isValid())
             {
-                root = static_cast<type_descriptor_item*>(parent.internalPointer());
+                root = static_cast<TypeDescriptorElement*>(parent.internalPointer());
             }
             else
             {
                 root = this->m_Root;
             }
 
-            if (auto* child = root->get_child(row); child != nullptr)
+            if (auto* child = root->GetChild(row); child != nullptr)
             {
                 return this->createIndex(row, column, child);
             }
@@ -400,48 +400,48 @@ namespace ptvapp::models
         return {};
     }
 
-    QModelIndex type_descriptor_model::parent(
+    QModelIndex TypeDescriptorModel::parent(
         const QModelIndex& index
     ) const
     {
         if (index.isValid())
         {
-            auto* child = static_cast<type_descriptor_item*>(index.internalPointer());
-            auto* parent = child->get_parent();
+            auto* child = static_cast<TypeDescriptorElement*>(index.internalPointer());
+            auto* parent = child->GetParent();
 
             if (parent != this->m_Root)
             {
-                return this->createIndex(parent->get_row_index(), 0, parent);
+                return this->createIndex(parent->GetRowIndex(), 0, parent);
             }
         }
 
         return {};
     }
 
-    int type_descriptor_model::rowCount(
+    int TypeDescriptorModel::rowCount(
         const QModelIndex& parent
     ) const
     {
         if (parent.column() <= 0)
         {
-            type_descriptor_item* root{};
+            TypeDescriptorElement* root{};
 
             if (parent.isValid())
             {
-                root = static_cast<type_descriptor_item*>(parent.internalPointer());
+                root = static_cast<TypeDescriptorElement*>(parent.internalPointer());
             }
             else
             {
                 root = this->m_Root;
             }
 
-            return root->children_count();
+            return root->GetChildrenCount();
         }
 
         return 0;
     }
 
-    int type_descriptor_model::columnCount(
+    int TypeDescriptorModel::columnCount(
         const QModelIndex& parent
     ) const
     {
@@ -449,14 +449,14 @@ namespace ptvapp::models
         return 7;
     }
 
-    void type_descriptor_model::SetupModelData(
+    void TypeDescriptorModel::SetupModelData(
         const std::vector<std::unique_ptr<ptv::pdb_abstract_type_member>>& members,
-        type_descriptor_item* parent
+        TypeDescriptorElement* parent
     ) noexcept
     {
         for (auto const& member : members)
         {
-            auto item = new type_descriptor_item(member.get(), parent);
+            auto item = new TypeDescriptorElement(member.get(), parent);
 
             auto const member_type = member->get_member_type();
 
@@ -467,7 +467,7 @@ namespace ptvapp::models
                 SetupModelData(detailed->get_members(), item);
             }
 
-            parent->append_child(item);
+            parent->AppendChild(item);
         }
     }
 }

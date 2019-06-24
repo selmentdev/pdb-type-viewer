@@ -2,41 +2,41 @@
 
 namespace ptvapp::models
 {
-    type_list_model::type_list_model(
+    TypeListModel::TypeListModel(
         QObject* parent
     ) noexcept
         : QAbstractItemModel{ parent }
-        , m_file{}
+        , m_File{}
     {
     }
 
-    type_list_model::~type_list_model() noexcept
+    TypeListModel::~TypeListModel() noexcept
     {
     }
 
-    void type_list_model::set_pdb_file(const ptv::pdb_file* file) noexcept
+    void TypeListModel::SetPdbFile(const ptv::pdb_file* file) noexcept
     {
         this->beginResetModel();
-        this->m_file = file;
+        this->m_File = file;
         this->endResetModel();
     }
 
-    int type_list_model::rowCount(
+    int TypeListModel::rowCount(
         const QModelIndex& parent
     ) const
     {
         if (parent.column() <= 0)
         {
-            if (this->m_file != nullptr)
+            if (this->m_File != nullptr)
             {
-                return static_cast<int>(this->m_file->get_types().size());
+                return static_cast<int>(this->m_File->get_types().size());
             }
         }
 
         return 0;
     }
 
-    QVariant type_list_model::data(
+    QVariant TypeListModel::data(
         const QModelIndex& index,
         int role
     ) const
@@ -61,26 +61,26 @@ namespace ptvapp::models
         return {};
     }
     
-    QModelIndex type_list_model::index(int row, int column, const QModelIndex& parent) const
+    QModelIndex TypeListModel::index(int row, int column, const QModelIndex& parent) const
     {
         (void)parent;
 
-        if (this->m_file != nullptr)
+        if (this->m_File != nullptr)
         {
-            auto* type = this->m_file->get_types()[row].get();
+            auto* type = this->m_File->get_types()[row].get();
             return createIndex(row, column, type);
         }
 
         return {};
     }
 
-    QModelIndex type_list_model::parent(const QModelIndex& child) const
+    QModelIndex TypeListModel::parent(const QModelIndex& child) const
     {
         (void)child;
         return QModelIndex();
     }
     
-    int type_list_model::columnCount(const QModelIndex& parent) const
+    int TypeListModel::columnCount(const QModelIndex& parent) const
     {
         (void)parent;
         return 1;
