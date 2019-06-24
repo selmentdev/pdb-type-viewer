@@ -40,16 +40,42 @@ namespace ptvapp::forms
         dialog.setCancelButton(nullptr);
         dialog.setAutoClose(true);
         dialog.setModal(true);
+
+        auto label = new QLabel(&dialog);
+        label->setMaximumWidth(560);
+        label->setMinimumWidth(560);
+        label->setWordWrap(true);
+
+        dialog.setLabel(label);
+
         dialog.show();
 
         qApp->processEvents();
 
         auto pdbfile = LibPdb::CreateSession();
 
-        if (pdbfile->Load(path.toString().toStdWString(), [&](int32_t current, int32_t total)
+        if (pdbfile->Load(path.toString().toStdWString(), [&](int32_t current, int32_t total, std::wstring_view name)
         {
             dialog.setMaximum(total);
             dialog.setValue(current);
+
+            auto text = QString::fromStdWString(
+                std::wstring{
+                    name
+                }
+            );
+
+            QFontMetrics metrics(label->font());
+            auto elidedText = metrics.elidedText(text, Qt::ElideRight, label->width());
+            
+            dialog.setLabelText(elidedText);
+
+            //if (text.length() > 100)
+            //{
+            //    text.truncate(100);
+            //    text += "...";
+            //}
+
 
             qApp->processEvents();
         }))

@@ -15,7 +15,7 @@ namespace LibPdb
 
         virtual bool Load(
             std::wstring_view path,
-            std::function<void(int32_t current, int32_t total)> progress
+            std::function<void(int32_t current, int32_t total, std::wstring_view name)> progress
         ) noexcept = 0;
 
     public:

@@ -431,7 +431,7 @@ namespace LibPdb::Detail
 
         virtual bool Load(
             std::wstring_view path,
-            std::function<void(int32_t current, int32_t total)> progress
+            std::function<void(int32_t current, int32_t total, std::wstring_view name)> progress
         ) noexcept override
         {
             Microsoft::WRL::ComPtr<IDiaDataSource> source{};
@@ -493,12 +493,13 @@ namespace LibPdb::Detail
                 {
                     ++current;
 
+                    auto name = MsDia::GetName(child);
+
                     if (progress)
                     {
-                        progress(current, total);
+                        progress(current, total, name);
                     }
 
-                    auto name = MsDia::GetName(child);
                     unique_types.insert(
                         std::make_pair(
                             name,
