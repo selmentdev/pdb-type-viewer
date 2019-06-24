@@ -1,7 +1,8 @@
 #include <forms/form_main_window.hxx>
-#include <QtWidgets>
+#include <forms/form_about_box.hxx>
 #include <models/model_type_descriptor.hxx>
 #include <models/model_type_list.hxx>
+#include <QtWidgets>
 
 namespace ptvapp::forms
 {
@@ -17,7 +18,9 @@ namespace ptvapp::forms
 
     void main_window::about() noexcept
     {
-        QMessageBox::about(this, tr("About pdb-type-viewer"), tr("PDB Type Viewer"));
+        auto* about = new forms::about_box{ this };
+        about->setModal(true);
+        about->show();
     }
 
     void main_window::load() noexcept
@@ -80,6 +83,7 @@ namespace ptvapp::forms
         auto* vbox = new QVBoxLayout();
         vbox->addWidget(filter, 0);
         vbox->addWidget(this->m_type_list_view, 1);
+        vbox->setContentsMargins({});
 
         container->setLayout(vbox);
 

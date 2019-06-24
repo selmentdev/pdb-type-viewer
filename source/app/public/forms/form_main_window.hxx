@@ -20,7 +20,8 @@ namespace ptvapp::models
 
 namespace ptvapp::forms
 {
-    class main_window : public QMainWindow
+    class main_window
+        : public QMainWindow
     {
         Q_OBJECT;
 

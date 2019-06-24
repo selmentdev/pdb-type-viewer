@@ -1,6 +1,6 @@
 local qt = premake.extensions.qt
 
-local qt_path = "d:/Qt/5.13.0/msvc2017_64"
+local qt_path = "e:/Qt/5.13.0/msvc2017_64"
 
 project "ptv-ui"
     kind "WindowedApp"
