@@ -1,7 +1,7 @@
 #pragma once
 #include <QMainWindow>
 
-#include <ptv.hxx>
+#include <LibPtv.hxx>
 
 class QAction;
 class QListWidget;
@@ -41,7 +41,7 @@ namespace ptvapp::forms
         void CreateControls() noexcept;
 
     private:
-        std::unique_ptr<ptv::pdb_file> m_PdbFile;
+        std::unique_ptr<LibPdb::Session> m_PdbFile;
 
     private:
         ptvapp::models::TypeListModel* m_TypeListModel;

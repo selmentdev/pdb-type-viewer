@@ -44,8 +44,9 @@ namespace ptvapp::forms
 
         qApp->processEvents();
 
-        auto pdbfile = ptv::create();
-        if (pdbfile->load(path.toString().toStdWString(), [&](int32_t current, int32_t total)
+        auto pdbfile = LibPdb::CreateSession();
+
+        if (pdbfile->Load(path.toString().toStdWString(), [&](int32_t current, int32_t total)
         {
             dialog.setMaximum(total);
             dialog.setValue(current);
@@ -54,7 +55,7 @@ namespace ptvapp::forms
         }))
         {
             m_PdbFile = std::move(pdbfile);
-            m_TypeListModel->SetPdbFile(m_PdbFile.get());
+            m_TypeListModel->SetSession(m_PdbFile.get());
 
             this->setWindowTitle(
                 tr("PDB Type Viewer") + QString{ " - %1" }.arg(path)
@@ -143,9 +144,9 @@ namespace ptvapp::forms
                 {
                     if (auto const underlying = this->m_TypeListModelProxy->mapToSource(current); underlying.isValid())
                     {
-                        if (auto const* type = static_cast<const ptv::pdb_type*>(underlying.internalPointer()); type != nullptr)
+                        if (auto const* type = static_cast<const LibPdb::Type*>(underlying.internalPointer()); type != nullptr)
                         {
-                            if (auto descriptor = this->m_PdbFile->get_descriptor(*type); descriptor != nullptr)
+                            if (auto descriptor = this->m_PdbFile->GetDescriptor(*type); descriptor != nullptr)
                             {
                                 this->m_TypeModel->FromDescriptor(
                                     std::move(descriptor)

@@ -1,7 +1,7 @@
 #pragma once
 #include <QAbstractItemModel>
-#include <ptv/pdb_abstract_type_member.hxx>
-#include <ptv/pdb_type_descriptor.hxx>
+#include <LibPtv/BaseTypeMember.hxx>
+#include <LibPtv/TypeDescriptor.hxx>
 
 namespace ptvapp::models
 {
@@ -23,11 +23,11 @@ namespace ptvapp::models
     private:
         QList<TypeDescriptorElement*> m_Children;
         TypeDescriptorElement* m_Parent;
-        ptv::pdb_abstract_type_member* m_Member;
+        LibPdb::BaseTypeMember* m_Member;
 
     public:
         explicit TypeDescriptorElement(
-            ptv::pdb_abstract_type_member* member,
+            LibPdb::BaseTypeMember* member,
             TypeDescriptorElement* parent = nullptr
         ) noexcept;
 
@@ -55,7 +55,7 @@ namespace ptvapp::models
         void Clear() noexcept;
 
     public:
-        ptv::pdb_abstract_type_member* GetMember() const noexcept
+        LibPdb::BaseTypeMember* GetMember() const noexcept
         {
             return m_Member;
         }
@@ -69,7 +69,7 @@ namespace ptvapp::models
         Q_OBJECT
     private:
         TypeDescriptorElement* m_Root;
-        std::unique_ptr<ptv::pdb_type_descriptor> m_CurrentDescriptor;
+        std::unique_ptr<LibPdb::TypeDescriptor> m_CurrentDescriptor;
 
     public:
         explicit TypeDescriptorModel(
@@ -80,12 +80,12 @@ namespace ptvapp::models
 
     public:
         void FromDescriptor(
-            std::unique_ptr<ptv::pdb_type_descriptor>&& descriptor
+            std::unique_ptr<LibPdb::TypeDescriptor>&& descriptor
         ) noexcept;
 
     private:
         void SetupModelData(
-            const std::vector<std::unique_ptr<ptv::pdb_abstract_type_member>>& members,
+            const std::vector<std::unique_ptr<LibPdb::BaseTypeMember>>& members,
             TypeDescriptorElement* parent
         ) noexcept;
 

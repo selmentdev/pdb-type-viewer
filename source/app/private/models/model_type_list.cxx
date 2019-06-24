@@ -6,7 +6,7 @@ namespace ptvapp::models
         QObject* parent
     ) noexcept
         : QAbstractItemModel{ parent }
-        , m_File{}
+        , m_Session{}
     {
     }
 
@@ -14,10 +14,10 @@ namespace ptvapp::models
     {
     }
 
-    void TypeListModel::SetPdbFile(const ptv::pdb_file* file) noexcept
+    void TypeListModel::SetSession(const LibPdb::Session* session) noexcept
     {
         this->beginResetModel();
-        this->m_File = file;
+        this->m_Session = session;
         this->endResetModel();
     }
 
@@ -27,9 +27,9 @@ namespace ptvapp::models
     {
         if (parent.column() <= 0)
         {
-            if (this->m_File != nullptr)
+            if (this->m_Session != nullptr)
             {
-                return static_cast<int>(this->m_File->get_types().size());
+                return static_cast<int>(this->m_Session->GetTypes().size());
             }
         }
 
@@ -50,11 +50,11 @@ namespace ptvapp::models
                 return {};
             }
 
-            auto const item = static_cast<const ptv::pdb_type*>(index.internalPointer());
+            auto const item = static_cast<const LibPdb::Type*>(index.internalPointer());
 
             if (item != nullptr)
             {
-                return QString::fromStdWString(std::wstring{ item->get_name() });
+                return QString::fromStdWString(std::wstring{ item->GetName() });
             }
         }
 
@@ -65,9 +65,9 @@ namespace ptvapp::models
     {
         (void)parent;
 
-        if (this->m_File != nullptr)
+        if (this->m_Session != nullptr)
         {
-            auto* type = this->m_File->get_types()[row].get();
+            auto* type = this->m_Session->GetTypes()[row].get();
             return createIndex(row, column, type);
         }
 

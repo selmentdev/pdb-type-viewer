@@ -9,15 +9,15 @@
 #include <map>
 #include <set>
 
-#include <ptv.hxx>
-#include <ptv/pdb_abstract_type_member.hxx>
-#include <ptv/pdb_member_field.hxx>
-#include <ptv/pdb_member_inherited.hxx>
-#include <ptv/pdb_member_padding.hxx>
+#include <LibPtv.hxx>
+#include <LibPtv/BaseTypeMember.hxx>
+#include <LibPtv/TypeMemberField.hxx>
+#include <LibPtv/TypeMemberInherited.hxx>
+#include <LibPtv/TypeMemberPadding.hxx>
 
-namespace ptv::dia
+namespace LibPdb::MsDia
 {
-    Microsoft::WRL::ComPtr<IDiaSymbol> next(
+    Microsoft::WRL::ComPtr<IDiaSymbol> Next(
         Microsoft::WRL::ComPtr<IDiaEnumSymbols> enumerator
     ) noexcept
     {
@@ -33,7 +33,7 @@ namespace ptv::dia
         return result;
     }
 
-    Microsoft::WRL::ComPtr<IDiaEnumSymbols> find_children(
+    Microsoft::WRL::ComPtr<IDiaEnumSymbols> FindChildren(
         Microsoft::WRL::ComPtr<IDiaSymbol> symbol,
         enum SymTagEnum symtag
     ) noexcept
@@ -52,7 +52,7 @@ namespace ptv::dia
         return result;
     }
 
-    int32_t count(
+    int32_t GetCount(
         Microsoft::WRL::ComPtr<IDiaEnumSymbols> enumerator
     ) noexcept
     {
@@ -61,7 +61,7 @@ namespace ptv::dia
         return static_cast<int32_t>(result);
     }
 
-    std::wstring_view name(
+    std::wstring_view GetName(
         Microsoft::WRL::ComPtr<IDiaSymbol> symbol
     ) noexcept
     {
@@ -76,7 +76,7 @@ namespace ptv::dia
         return {};
     }
 
-    uint32_t rank(
+    uint32_t GetRank(
         Microsoft::WRL::ComPtr<IDiaSymbol> symbol
     ) noexcept
     {
@@ -86,7 +86,7 @@ namespace ptv::dia
         return static_cast<uint32_t>(result);
     }
 
-    uint32_t count(
+    uint32_t GetCount(
         Microsoft::WRL::ComPtr<IDiaSymbol> symbol
     ) noexcept
     {
@@ -96,7 +96,7 @@ namespace ptv::dia
         return static_cast<uint32_t>(result);
     }
 
-    uint64_t length(
+    uint64_t GetLength(
         Microsoft::WRL::ComPtr<IDiaSymbol> symbol
     ) noexcept
     {
@@ -106,7 +106,7 @@ namespace ptv::dia
         return static_cast<uint64_t>(result);
     }
 
-    int64_t offset(
+    int64_t GetOffset(
         Microsoft::WRL::ComPtr<IDiaSymbol> symbol
     ) noexcept
     {
@@ -116,7 +116,7 @@ namespace ptv::dia
         return static_cast<int64_t>(result);
     }
 
-    uint32_t bit_position(
+    uint32_t GetBitPosition(
         Microsoft::WRL::ComPtr<IDiaSymbol> symbol
     ) noexcept
     {
@@ -126,7 +126,7 @@ namespace ptv::dia
         return static_cast<uint32_t>(result);
     }
 
-    bool is_const(
+    bool IsConst(
         Microsoft::WRL::ComPtr<IDiaSymbol> type
     ) noexcept
     {
@@ -136,7 +136,7 @@ namespace ptv::dia
         return result != FALSE;
     }
 
-    bool is_volatile(
+    bool IsVolatile(
         Microsoft::WRL::ComPtr<IDiaSymbol> type
     ) noexcept
     {
@@ -146,7 +146,7 @@ namespace ptv::dia
         return result != FALSE;
     }
 
-    bool is_unaligned(
+    bool IsUnaligned(
         Microsoft::WRL::ComPtr<IDiaSymbol> type
     ) noexcept
     {
@@ -156,7 +156,7 @@ namespace ptv::dia
         return result != FALSE;
     }
 
-    bool is_reference(
+    bool IsReference(
         Microsoft::WRL::ComPtr<IDiaSymbol> type
     ) noexcept
     {
@@ -166,7 +166,7 @@ namespace ptv::dia
         return result != FALSE;
     }
 
-    UdtKind udt_kind(
+    UdtKind GetUdtKind(
         Microsoft::WRL::ComPtr<IDiaSymbol> symbol
     ) noexcept
     {
@@ -176,7 +176,7 @@ namespace ptv::dia
         return static_cast<UdtKind>(result);
     }
 
-    BasicType get_base_type(
+    BasicType GetBaseType(
         Microsoft::WRL::ComPtr<IDiaSymbol> symbol
     ) noexcept
     {
@@ -185,11 +185,11 @@ namespace ptv::dia
 
         return static_cast<BasicType>(result);
     }
-    std::wstring get_base_type_name(
+    std::wstring GetBaseTypeName(
         Microsoft::WRL::ComPtr<IDiaSymbol> symbol
     ) noexcept
     {
-        auto type = dia::get_base_type(symbol);
+        auto type = MsDia::GetBaseType(symbol);
 
         switch (type)
         {
@@ -206,7 +206,7 @@ namespace ptv::dia
             {
                 std::wstring result = ((type == btUInt) ? L"u" : L"");
 
-                auto const length = dia::length(symbol);
+                auto const length = MsDia::GetLength(symbol);
 
                 switch (length)
                 {
@@ -228,7 +228,7 @@ namespace ptv::dia
             }
         case btFloat:
             {
-                auto const length = dia::length(symbol);
+                auto const length = MsDia::GetLength(symbol);
 
                 if (length == 4)
                 {
@@ -280,7 +280,7 @@ namespace ptv::dia
         }
     }
 
-    Microsoft::WRL::ComPtr<IDiaSymbol> type(
+    Microsoft::WRL::ComPtr<IDiaSymbol> GetType(
         Microsoft::WRL::ComPtr<IDiaSymbol> symbol
     ) noexcept
     {
@@ -291,7 +291,7 @@ namespace ptv::dia
         return result;
     }
 
-    std::optional<enum SymTagEnum> symtag(
+    std::optional<enum SymTagEnum> GetSymTag(
         Microsoft::WRL::ComPtr<IDiaSymbol> symbol
     ) noexcept
     {
@@ -305,7 +305,7 @@ namespace ptv::dia
         return static_cast<enum SymTagEnum>(result);
     }
 
-    std::optional<bool> is_static(
+    std::optional<bool> IsStatic(
         Microsoft::WRL::ComPtr<IDiaSymbol> symbol
     ) noexcept
     {
@@ -319,7 +319,7 @@ namespace ptv::dia
         return (result != FALSE);
     }
 
-    std::optional<LocationType> location(
+    std::optional<LocationType> GetLocation(
         Microsoft::WRL::ComPtr<IDiaSymbol> symbol
     ) noexcept
     {
@@ -334,9 +334,9 @@ namespace ptv::dia
     }
 }
 
-namespace ptv::helpers
+namespace LibPdb::Helpers
 {
-    std::wstring convert(
+    std::wstring Convert(
         std::string_view value
     ) noexcept
     {
@@ -356,7 +356,7 @@ namespace ptv::helpers
         return result;
     }
 
-    std::string convert(
+    std::string Convert(
         std::wstring_view value
     ) noexcept
     {
@@ -377,59 +377,59 @@ namespace ptv::helpers
     }
 }
 
-namespace ptv::impl
+namespace LibPdb::Detail
 {
-    class pdb_type_impl : public pdb_type
+    class TypeImpl : public Type
     {
     private:
-        std::wstring m_name;
+        std::wstring m_Name;
         Microsoft::WRL::ComPtr<IDiaSymbol> m_symbol;
 
     public:
-        pdb_type_impl(
+        TypeImpl(
             Microsoft::WRL::ComPtr<IDiaSymbol> symbol
         ) noexcept
-            : m_name{ dia::name(symbol) }
+            : m_Name{ MsDia::GetName(symbol) }
             , m_symbol{ symbol }
         {
         }
 
-        virtual ~pdb_type_impl() noexcept = default;
+        virtual ~TypeImpl() noexcept = default;
 
-        virtual std::wstring_view get_name() const noexcept override
+        virtual std::wstring_view GetName() const noexcept override
         {
-            return m_name;
+            return m_Name;
         }
 
-        const Microsoft::WRL::ComPtr<IDiaSymbol>& get_symbol() const noexcept
+        const Microsoft::WRL::ComPtr<IDiaSymbol>& GetSymbol() const noexcept
         {
             return m_symbol;
         }
 
-        virtual std::unique_ptr<pdb_type> clone() const noexcept override
+        virtual std::unique_ptr<Type> Clone() const noexcept override
         {
-            return std::make_unique<pdb_type_impl>(
+            return std::make_unique<TypeImpl>(
                 this->m_symbol
             );
         }
     };
 }
 
-namespace ptv::impl
+namespace LibPdb::Detail
 {
-    class pdb_file_impl : public pdb_file
+    class SessionImpl : public Session
     {
     private:
-        Microsoft::WRL::ComPtr<IDiaSession> m_session;
-        Microsoft::WRL::ComPtr<IDiaDataSource> m_source;
-        Microsoft::WRL::ComPtr<IDiaSymbol> m_global_scope;
-        std::vector<std::unique_ptr<pdb_type>> m_types;
+        Microsoft::WRL::ComPtr<IDiaSession> m_Session;
+        Microsoft::WRL::ComPtr<IDiaDataSource> m_Source;
+        Microsoft::WRL::ComPtr<IDiaSymbol> m_GlobalScope;
+        std::vector<std::unique_ptr<Type>> m_Types;
 
     public:
-        pdb_file_impl() noexcept = default;
-        virtual ~pdb_file_impl() noexcept = default;
+        SessionImpl() noexcept = default;
+        virtual ~SessionImpl() noexcept = default;
 
-        virtual bool load(
+        virtual bool Load(
             std::wstring_view path,
             std::function<void(int32_t current, int32_t total)> progress
         ) noexcept override
@@ -484,12 +484,12 @@ namespace ptv::impl
 
             std::map<std::wstring_view, Microsoft::WRL::ComPtr<IDiaSymbol>> unique_types{};
 
-            if (auto enum_types = dia::find_children(global_scope, SymTagUDT); enum_types != nullptr)
+            if (auto enum_types = MsDia::FindChildren(global_scope, SymTagUDT); enum_types != nullptr)
             {
-                auto total = dia::count(enum_types);
+                auto total = MsDia::GetCount(enum_types);
                 int32_t current = 0;
 
-                for (auto child = dia::next(enum_types); child != nullptr; child = dia::next(enum_types))
+                for (auto child = MsDia::Next(enum_types); child != nullptr; child = MsDia::Next(enum_types))
                 {
                     ++current;
 
@@ -498,7 +498,7 @@ namespace ptv::impl
                         progress(current, total);
                     }
 
-                    auto name = dia::name(child);
+                    auto name = MsDia::GetName(child);
                     unique_types.insert(
                         std::make_pair(
                             name,
@@ -508,35 +508,35 @@ namespace ptv::impl
                 }
             }
 
-            std::vector<std::unique_ptr<ptv::pdb_type>> types{};
+            std::vector<std::unique_ptr<LibPdb::Type>> types{};
             types.reserve(unique_types.size());
 
             for (auto const& unique : unique_types)
             {
                 types.push_back(
                     std::move(
-                        std::make_unique<ptv::impl::pdb_type_impl>(
+                        std::make_unique<LibPdb::Detail::TypeImpl>(
                             unique.second
                         )
                     )
                 );
             }
 
-            m_types = std::move(types);
-            m_session = std::move(session);
-            m_source = std::move(source);
-            m_global_scope = std::move(global_scope);
+            m_Types = std::move(types);
+            m_Session = std::move(session);
+            m_Source = std::move(source);
+            m_GlobalScope = std::move(global_scope);
 
             return true;
         }
 
 
-        virtual const std::vector<std::unique_ptr<pdb_type>>& get_types() const noexcept override
+        virtual const std::vector<std::unique_ptr<Type>>& GetTypes() const noexcept override
         {
-            return m_types;
+            return m_Types;
         }
 
-        static std::wstring get_function_type_name(
+        static std::wstring GetFunctionTypeName(
             Microsoft::WRL::ComPtr<IDiaSymbol> symbol
         ) noexcept
         {
@@ -548,34 +548,34 @@ namespace ptv::impl
 
             if (type != nullptr)
             {
-                result += get_type_name(type);
+                result += GetTypeName(type);
             }
 
-            result += dia::name(symbol);
+            result += MsDia::GetName(symbol);
 
             std::vector<std::wstring_view> names{};
 
-            auto children = dia::find_children(symbol, SymTagNull);
+            auto children = MsDia::FindChildren(symbol, SymTagNull);
 
             result += L"(";
 
             if (children != nullptr)
             {
-                auto child = dia::next(children);
+                auto child = MsDia::Next(children);
 
                 if (child != nullptr)
                 {
-                    result += get_type_name(child);
+                    result += GetTypeName(child);
 
-                    child = dia::next(children);
+                    child = MsDia::Next(children);
 
                     while (child != nullptr)
                     {
                         result += L", ";
 
-                        result += get_type_name(child);
+                        result += GetTypeName(child);
 
-                        child = dia::next(children);
+                        child = MsDia::Next(children);
                     }
                 }
             }
@@ -585,14 +585,14 @@ namespace ptv::impl
             return result;
         }
 
-        static std::wstring get_bound(
+        static std::wstring GetBound(
             Microsoft::WRL::ComPtr<IDiaSymbol> symbol
         ) noexcept
         {
             return L"<bound>";
         }
 
-        static std::wstring get_array_name(
+        static std::wstring GetArrayName(
             Microsoft::WRL::ComPtr<IDiaSymbol> symbol
         ) noexcept
         {
@@ -600,16 +600,16 @@ namespace ptv::impl
 
             if (symbol != nullptr)
             {
-                auto type = dia::type(symbol);
+                auto type = MsDia::GetType(symbol);
 
-                result += get_type_name(type);
+                result += GetTypeName(type);
 
                 auto done = false;
-                if (auto rank = dia::rank(symbol); rank != 0)
+                if (auto rank = MsDia::GetRank(symbol); rank != 0)
                 {
-                    if (auto bounds = dia::find_children(symbol, SymTagDimension); bounds != nullptr)
+                    if (auto bounds = MsDia::FindChildren(symbol, SymTagDimension); bounds != nullptr)
                     {
-                        for (auto bound = dia::next(bounds); bound != nullptr; bound = dia::next(bounds))
+                        for (auto bound = MsDia::Next(bounds); bound != nullptr; bound = MsDia::Next(bounds))
                         {
                             done = true;
 
@@ -620,9 +620,9 @@ namespace ptv::impl
                             bound->get_upperBound(upper.GetAddressOf());
 
                             result += L"[";
-                            result += get_bound(lower);
+                            result += GetBound(lower);
                             result += L"..";
-                            result += get_bound(upper);
+                            result += GetBound(upper);
                             result += L"]";
                         }
                     }
@@ -630,14 +630,14 @@ namespace ptv::impl
 
                 if (!done)
                 {
-                    if (auto bounds = dia::find_children(symbol, SymTagCustomType); bounds != nullptr)
+                    if (auto bounds = MsDia::FindChildren(symbol, SymTagCustomType); bounds != nullptr)
                     {
-                        for (auto bound = dia::next(bounds); bound != nullptr; bound = dia::next(bounds))
+                        for (auto bound = MsDia::Next(bounds); bound != nullptr; bound = MsDia::Next(bounds))
                         {
                             done = true;
 
                             result += L"[";
-                            result += get_type_name(bound);
+                            result += GetTypeName(bound);
                             result += L"]";
                         }
                     }
@@ -645,7 +645,7 @@ namespace ptv::impl
 
                 if (!done)
                 {
-                    if (auto const count = dia::count(symbol); count != 0)
+                    if (auto const count = MsDia::GetCount(symbol); count != 0)
                     {
                         done = true;
                         result += L"[";
@@ -656,8 +656,8 @@ namespace ptv::impl
 
                 if (!done)
                 {
-                    auto const array_length = dia::length(symbol);
-                    auto const type_length = dia::length(type);
+                    auto const array_length = MsDia::GetLength(symbol);
+                    auto const type_length = MsDia::GetLength(type);
 
                     done = true;
 
@@ -682,7 +682,7 @@ namespace ptv::impl
             return result;
         }
 
-        static std::wstring get_type_name(
+        static std::wstring GetTypeName(
             Microsoft::WRL::ComPtr<IDiaSymbol> symbol
         ) noexcept
         {
@@ -690,40 +690,40 @@ namespace ptv::impl
 
             if (symbol != nullptr)
             {
-                auto tag = dia::symtag(symbol);
+                auto tag = MsDia::GetSymTag(symbol);
 
                 switch (tag.value_or(SymTagNull))
                 {
                 case SymTagFunctionArgType:
                     {
-                        result = get_type_name(dia::type(symbol));
+                        result = GetTypeName(MsDia::GetType(symbol));
                         break;
                     }
                 case SymTagFunctionType:
                     {
-                        result = get_function_type_name(symbol);
+                        result = GetFunctionTypeName(symbol);
                         break;
                     }
                 case SymTagPointerType:
                     {
-                        result = get_type_name(dia::type(symbol));
+                        result = GetTypeName(MsDia::GetType(symbol));
 
-                        if (dia::is_const(symbol))
+                        if (MsDia::IsConst(symbol))
                         {
                             result += L" const";
                         }
 
-                        if (dia::is_volatile(symbol))
+                        if (MsDia::IsVolatile(symbol))
                         {
                             result += L" volatile";
                         }
 
-                        if (dia::is_unaligned(symbol))
+                        if (MsDia::IsUnaligned(symbol))
                         {
                             result += L" __unaligned";
                         }
 
-                        if (dia::is_reference(symbol))
+                        if (MsDia::IsReference(symbol))
                         {
                             result += L" &";
                         }
@@ -736,7 +736,7 @@ namespace ptv::impl
                     }
                 case SymTagArrayType:
                     {
-                        result = get_array_name(symbol);
+                        result = GetArrayName(symbol);
                         break;
                     }
                 case SymTagVTable:
@@ -747,7 +747,7 @@ namespace ptv::impl
                     }
                 case SymTagUDT:
                     {
-                        auto kind = dia::udt_kind(symbol);
+                        auto kind = MsDia::GetUdtKind(symbol);
 
                         switch (kind)
                         {
@@ -773,19 +773,19 @@ namespace ptv::impl
                             }
                         }
 
-                        result += dia::name(symbol);
+                        result += MsDia::GetName(symbol);
 
                         break;
                     }
                 case SymTagEnum:
                     {
                         result = L"enum ";
-                        result += dia::name(symbol);
+                        result += MsDia::GetName(symbol);
                         break;
                     }
                 case SymTagBaseType:
                     {
-                        result = dia::get_base_type_name(symbol);
+                        result = MsDia::GetBaseTypeName(symbol);
                         break;
                     }
                 }
@@ -794,11 +794,11 @@ namespace ptv::impl
             return result;
         }
 
-        static std::optional<bool> is_valid_member(
+        static std::optional<bool> IsValidMember(
             Microsoft::WRL::ComPtr<IDiaSymbol> symbol
         ) noexcept
         {
-            auto symtag = dia::symtag(symbol);
+            auto symtag = MsDia::GetSymTag(symbol);
 
             if (!symtag.has_value())
             {
@@ -816,7 +816,7 @@ namespace ptv::impl
                 return false;
             }
 
-            auto is_static = dia::is_static(symbol);
+            auto is_static = MsDia::IsStatic(symbol);
 
             if (!is_static.has_value())
             {
@@ -828,7 +828,7 @@ namespace ptv::impl
                 return false;
             }
 
-            auto location = dia::location(symbol);
+            auto location = MsDia::GetLocation(symbol);
 
             if (!location.has_value())
             {
@@ -843,7 +843,7 @@ namespace ptv::impl
             return true;
         }
 
-        static std::unique_ptr<pdb_member_inherited> create_member_inherited(
+        static std::unique_ptr<TypeMemberInherited> CreateMemberInherited(
             Microsoft::WRL::ComPtr<IDiaSymbol> symbol
         ) noexcept
         {
@@ -851,9 +851,9 @@ namespace ptv::impl
             // Get basic type info.
             //
 
-            auto const type_name = dia::name(symbol);
-            auto const offset = dia::offset(symbol);
-            auto const size = dia::length(symbol);
+            auto const type_name = MsDia::GetName(symbol);
+            auto const offset = MsDia::GetOffset(symbol);
+            auto const size = MsDia::GetLength(symbol);
 
 
             //
@@ -862,40 +862,24 @@ namespace ptv::impl
 
             std::vector<Microsoft::WRL::ComPtr<IDiaSymbol>> native_symbols{};
 
-            if (auto children = dia::find_children(symbol, SymTagNull); children != nullptr)
+            if (auto children = MsDia::FindChildren(symbol, SymTagNull); children != nullptr)
             {
-                for (auto child = dia::next(children); child != nullptr; child = dia::next(children))
+                for (auto child = MsDia::Next(children); child != nullptr; child = MsDia::Next(children))
                 {
                     native_symbols.push_back(child);
                 }
             }
-
-            //
-            // Sort them by offset.
-            //
-            // NOTE: is this required?
-            //
-#if false
-            std::sort(
-                native_symbols.begin(),
-                native_symbols.end(),
-                [](const Microsoft::WRL::ComPtr<IDiaSymbol>& lhs, const Microsoft::WRL::ComPtr<IDiaSymbol>& rhs) noexcept
-                {
-                    return dia::offset(lhs) < dia::offset(rhs);
-                }
-            );
-#endif
 
 
             //
             // Create wrapper for applicable symbols.
             //
 
-            std::vector<std::unique_ptr<pdb_abstract_type_member>> symbols{};
+            std::vector<std::unique_ptr<BaseTypeMember>> symbols{};
 
             for (auto const& current : native_symbols)
             {
-                if (auto item = create(current); item != nullptr)
+                if (auto item = Create(current); item != nullptr)
                 {
                     symbols.push_back(std::move(item));
                 }
@@ -915,17 +899,17 @@ namespace ptv::impl
                 //
                 // Compute highest padding value.
 
-                highest_ending = std::max(highest_ending, current->get_next_offset());
+                highest_ending = std::max(highest_ending, current->GetNextOffset());
 
                 //
                 // Get symbols before current one.
                 //
 
-                std::vector<ptv::pdb_abstract_type_member*> lesser{};
+                std::vector<LibPdb::BaseTypeMember*> lesser{};
 
                 for (auto const& before : symbols)
                 {
-                    if (before->get_next_offset() <= current->get_offset())
+                    if (before->GetNextOffset() <= current->GetOffset())
                     {
                         lesser.push_back(before.get());
                     }
@@ -939,9 +923,9 @@ namespace ptv::impl
                 auto it = std::min_element(
                     std::begin(lesser),
                     std::end(lesser),
-                    [&](const ptv::pdb_abstract_type_member* lhs, const ptv::pdb_abstract_type_member* rhs)
+                    [&](const LibPdb::BaseTypeMember* lhs, const LibPdb::BaseTypeMember* rhs)
                     {
-                        return (current->get_offset() - lhs->get_next_offset()) < (current->get_offset() - rhs->get_next_offset());
+                        return (current->GetOffset() - lhs->GetNextOffset()) < (current->GetOffset() - rhs->GetNextOffset());
                     }
                 );
 
@@ -951,8 +935,8 @@ namespace ptv::impl
                     // Compute offset and padding between this symbol and adjacent.
                     //
 
-                    auto const final_offset = (*it)->get_next_offset();
-                    auto const final_padding = current->get_offset() - final_offset;
+                    auto const final_offset = (*it)->GetNextOffset();
+                    auto const final_padding = current->GetOffset() - final_offset;
 
                     if (final_padding != 0)
                     {
@@ -972,7 +956,7 @@ namespace ptv::impl
 
             for (auto const& padding : paddings)
             {
-                symbols.push_back(std::make_unique<pdb_member_padding>(padding.first, padding.second));
+                symbols.push_back(std::make_unique<TypeMemberPadding>(padding.first, padding.second));
             }
 
 
@@ -983,14 +967,14 @@ namespace ptv::impl
             std::sort(
                 symbols.begin(),
                 symbols.end(),
-                [](const std::unique_ptr<pdb_abstract_type_member>& lhs, const std::unique_ptr<pdb_abstract_type_member>& rhs) noexcept
+                [](const std::unique_ptr<BaseTypeMember>& lhs, const std::unique_ptr<BaseTypeMember>& rhs) noexcept
                 {
-                    if (lhs->get_offset() == rhs->get_offset())
+                    if (lhs->GetOffset() == rhs->GetOffset())
                     {
-                        return lhs->get_size() > rhs->get_size();
+                        return lhs->GetSize() > rhs->GetSize();
                     }
 
-                    return lhs->get_offset() < rhs->get_offset();
+                    return lhs->GetOffset() < rhs->GetOffset();
                 }
             );
 
@@ -999,7 +983,7 @@ namespace ptv::impl
             // Check if whole type has leading padding value.
             //
 
-            auto const type_size = dia::length(symbol);
+            auto const type_size = MsDia::GetLength(symbol);
             if (auto const final_padding = type_size - highest_ending; final_padding != 0)
             {
                 if (!symbols.empty())
@@ -1009,7 +993,7 @@ namespace ptv::impl
                     // one byte, but we don't want to report it as memory-wasting padding.
                     //
 
-                    symbols.push_back(std::make_unique<pdb_member_padding>(final_padding, highest_ending));
+                    symbols.push_back(std::make_unique<TypeMemberPadding>(final_padding, highest_ending));
                 }
             }
 
@@ -1035,25 +1019,25 @@ namespace ptv::impl
                 for (size_t i = 0, count = symbols.size() - 1; i < count; ++i)
                 {
                     auto const& first = symbols[i];
-                    if (first->get_member_type() == pdb_member_type::field)
+                    if (first->GetMemberType() == MemberType::Field)
                     {
-                        auto const& field = static_cast<pdb_member_field&>(*first);
+                        auto const& field = static_cast<TypeMemberField&>(*first);
 
                         auto& second = symbols[i + 1];
 
-                        if (second->get_member_type() == pdb_member_type::padding)
+                        if (second->GetMemberType() == MemberType::Padding)
                         {
-                            auto& padding = static_cast<ptv::pdb_member_padding&>(*second);
+                            auto& padding = static_cast<LibPdb::TypeMemberPadding&>(*second);
 
-                            if (field.get_offset() == padding.get_offset() &&
-                                field.get_size() == 0 &&
-                                field.get_kind() != ptv::pdb_member_kind::array)
+                            if (field.GetOffset() == padding.GetOffset() &&
+                                field.GetSize() == 0 &&
+                                field.GetKind() != LibPdb::MemberKind::Array)
                             {
                                 //
                                 // Type may contain array of zero elements!
                                 //
 
-                                padding.set_spurious(true);
+                                padding.SetSpurious(true);
                             }
                         }
                     }
@@ -1069,18 +1053,18 @@ namespace ptv::impl
 
             for (auto const& it : symbols)
             {
-                switch (it->get_member_type())
+                switch (it->GetMemberType())
                 {
-                case ptv::pdb_member_type::padding:
+                case LibPdb::MemberType::Padding:
                     {
-                        auto const& padding = static_cast<ptv::pdb_member_padding const&>(*it);
-                        total_padding += padding.get_size();
+                        auto const& padding = static_cast<LibPdb::TypeMemberPadding const&>(*it);
+                        total_padding += padding.GetSize();
                         break;
                     }
-                case ptv::pdb_member_type::inherited:
+                case LibPdb::MemberType::Inherited:
                     {
-                        auto const& inherited= static_cast<ptv::pdb_member_inherited const&>(*it);
-                        total_padding += inherited.get_padding();
+                        auto const& inherited= static_cast<LibPdb::TypeMemberInherited const&>(*it);
+                        total_padding += inherited.GetPadding();
                         break;
                     }
                 default:
@@ -1090,20 +1074,20 @@ namespace ptv::impl
                 }
             }
 
-            return std::make_unique<pdb_member_inherited>(
-                dia::length(symbol),
-                dia::offset(symbol),
+            return std::make_unique<TypeMemberInherited>(
+                MsDia::GetLength(symbol),
+                MsDia::GetOffset(symbol),
                 total_padding,
                 type_name,
                 std::move(symbols)
                 );
         }
 
-        static pdb_member_kind get_field_kind(
+        static MemberKind GetFieldKind(
             Microsoft::WRL::ComPtr<IDiaSymbol> symbol
         ) noexcept
         {
-            auto const symtag = dia::symtag(symbol);
+            auto const symtag = MsDia::GetSymTag(symbol);
 
             switch (symtag.value_or(SymTagNull))
             {
@@ -1145,27 +1129,27 @@ namespace ptv::impl
             case SymTagCoffGroup:
             case SymTagInlinee:
             case SymTagMax:
-                return pdb_member_kind::unknown;
+                return MemberKind::Unknown;
             case SymTagUDT:
             case SymTagEnum:
-                return pdb_member_kind::value;
+                return MemberKind::Value;
             case SymTagPointerType:
-                if (dia::is_reference(symbol))
+                if (MsDia::IsReference(symbol))
                 {
-                    return pdb_member_kind::reference;
+                    return MemberKind::Reference;
                 }
                 else
                 {
-                    if (auto const type = dia::type(symbol); type != nullptr)
+                    if (auto const type = MsDia::GetType(symbol); type != nullptr)
                     {
-                        if (auto const type_symtag = dia::symtag(type); type_symtag.has_value())
+                        if (auto const type_symtag = MsDia::GetSymTag(type); type_symtag.has_value())
                         {
                             switch (*type_symtag)
                             {
                             case SymTagVTable:
                             case SymTagVTableShape:
                                 {
-                                    return pdb_member_kind::vtable;
+                                    return MemberKind::VTable;
                                 }
                             default:
                                 {
@@ -1175,42 +1159,42 @@ namespace ptv::impl
                         }
                     }
 
-                    return pdb_member_kind::pointer;
+                    return MemberKind::Pointer;
                 }
             case SymTagArrayType:
-                return pdb_member_kind::array;
+                return MemberKind::Array;
             case SymTagVTableShape:
             case SymTagVTable:
-                return pdb_member_kind::vtable;
+                return MemberKind::VTable;
             }
 
-            return pdb_member_kind::unknown;
+            return MemberKind::Unknown;
         }
 
-        static std::unique_ptr<pdb_member_field> create_member_field(
+        static std::unique_ptr<TypeMemberField> CreateMemberField(
             Microsoft::WRL::ComPtr<IDiaSymbol> symbol
         ) noexcept
         {
-            auto type = dia::type(symbol);
+            auto type = MsDia::GetType(symbol);
 
-            auto size = dia::length(type);
-            auto const offset = static_cast<uint64_t>(dia::offset(symbol));
-            auto const name = dia::name(symbol);
-            auto const type_name = get_type_name(type);
-            auto const location = dia::location(symbol);
-            auto const kind = get_field_kind(type);
+            auto size = MsDia::GetLength(type);
+            auto const offset = static_cast<uint64_t>(MsDia::GetOffset(symbol));
+            auto const name = MsDia::GetName(symbol);
+            auto const type_name = GetTypeName(type);
+            auto const location = MsDia::GetLocation(symbol);
+            auto const kind = GetFieldKind(type);
 
             std::optional<std::pair<uint64_t, uint64_t>> bits{};
 
             if (location.has_value() && location.value() == LocIsBitField)
             {
                 bits = {
-                    dia::bit_position(symbol),
-                    dia::length(symbol),
+                    MsDia::GetBitPosition(symbol),
+                    MsDia::GetLength(symbol),
                 };
             }
             
-            return std::make_unique<pdb_member_field>(
+            return std::make_unique<TypeMemberField>(
                 size,
                 offset,
                 name,
@@ -1220,11 +1204,11 @@ namespace ptv::impl
             );
         }
 
-        static std::unique_ptr<pdb_abstract_type_member> create(
+        static std::unique_ptr<BaseTypeMember> Create(
             Microsoft::WRL::ComPtr<IDiaSymbol> symbol
         ) noexcept
         {
-            auto symtag = dia::symtag(symbol);
+            auto symtag = MsDia::GetSymTag(symbol);
 
             if (!symtag.has_value())
             {
@@ -1233,37 +1217,37 @@ namespace ptv::impl
 
             if (symtag == SymTagBaseClass)
             {
-                return create_member_inherited(symbol);
+                return CreateMemberInherited(symbol);
             }
-            else if (auto valid = is_valid_member(symbol); valid.value_or(false))
+            else if (auto valid = IsValidMember(symbol); valid.value_or(false))
             {
-                return create_member_field(symbol);
+                return CreateMemberField(symbol);
             }
 
             return nullptr;
         }
 
-        virtual std::unique_ptr<pdb_type_descriptor> get_descriptor(
-            const pdb_type& type
+        virtual std::unique_ptr<TypeDescriptor> GetDescriptor(
+            const Type& type
         ) const noexcept override
         {
-            auto const& typed = static_cast<ptv::impl::pdb_type_impl const&>(type);
+            auto const& typed = static_cast<LibPdb::Detail::TypeImpl const&>(type);
 
-            std::vector<std::unique_ptr<pdb_abstract_type_member>> members{};
+            std::vector<std::unique_ptr<BaseTypeMember>> members{};
 
             members.emplace_back(
-                create_member_inherited(typed.get_symbol())
+                CreateMemberInherited(typed.GetSymbol())
             );
 
-            return std::make_unique<pdb_type_descriptor>(std::move(members));
+            return std::make_unique<TypeDescriptor>(std::move(members));
         }
     };
 }
 
-namespace ptv
+namespace LibPdb
 {
-    PTV_API std::unique_ptr<pdb_file> create() noexcept
+    PTV_API std::unique_ptr<Session> CreateSession() noexcept
     {
-        return std::make_unique<impl::pdb_file_impl>();
+        return std::make_unique<Detail::SessionImpl>();
     }
 }

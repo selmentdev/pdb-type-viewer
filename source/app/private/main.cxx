@@ -2,7 +2,7 @@
 #include <QWindow>
 #include <QAbstractItemModel>
 #include <QTreeView>
-#include <ptv.hxx>
+#include <LibPtv.hxx>
 
 #include <forms/form_main_window.hxx>
 

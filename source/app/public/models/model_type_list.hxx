@@ -1,7 +1,7 @@
 #pragma once
 #include <QAbstractItemModel>
-#include <ptv/pdb_file.hxx>
-#include <ptv/pdb_type.hxx>
+#include <LibPtv/Session.hxx>
+#include <LibPtv/Type.hxx>
 
 namespace ptvapp::models
 {
@@ -9,7 +9,7 @@ namespace ptvapp::models
     {
         Q_OBJECT
     private:
-        const ptv::pdb_file* m_File;
+        const LibPdb::Session* m_Session;
 
     public:
         explicit TypeListModel(
@@ -18,7 +18,7 @@ namespace ptvapp::models
 
         virtual ~TypeListModel() noexcept;
 
-        void SetPdbFile(const ptv::pdb_file* file) noexcept;
+        void SetSession(const LibPdb::Session* file) noexcept;
 
     public:
         virtual int rowCount(

@@ -6,21 +6,21 @@
 #define PTV_API __declspec(dllimport)
 #endif
 
-#include <ptv/pdb_file.hxx>
+#include <LibPtv/Session.hxx>
 
 
-namespace ptv
+namespace LibPdb
 {
-    PTV_API std::unique_ptr<pdb_file> create() noexcept;
+    PTV_API std::unique_ptr<Session> CreateSession() noexcept;
 }
 
-namespace ptv::helpers
+namespace LibPdb::Helpers
 {
-    PTV_API std::wstring convert(
+    PTV_API std::wstring Convert(
         std::string_view value
     ) noexcept;
 
-    PTV_API std::string convert(
+    PTV_API std::string Convert(
         std::wstring_view value
     ) noexcept;
 }

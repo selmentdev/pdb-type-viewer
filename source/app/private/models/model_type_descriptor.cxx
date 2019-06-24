@@ -1,14 +1,14 @@
 #include <models/model_type_descriptor.hxx>
-#include <ptv/pdb_member_inherited.hxx>
-#include <ptv/pdb_member_field.hxx>
-#include <ptv/pdb_member_padding.hxx>
+#include <LibPtv/TypeMemberInherited.hxx>
+#include <LibPtv/TypeMemberField.hxx>
+#include <LibPtv/TypeMemberPadding.hxx>
 #include <QColor>
 #include <QTranslator>
 
 namespace ptvapp::models
 {
     TypeDescriptorElement::TypeDescriptorElement(
-        ptv::pdb_abstract_type_member* member,
+        LibPdb::BaseTypeMember* member,
         TypeDescriptorElement* parent
     ) noexcept
         : m_Children{}
@@ -47,29 +47,29 @@ namespace ptvapp::models
     {
         if (this->m_Member != nullptr)
         {
-            auto const member_type = this->m_Member->get_member_type();
+            auto const member_type = this->m_Member->GetMemberType();
 
             switch (role)
             {
             case TypeDescriptorElementRole::Type:
                 {
-                    if (member_type == ptv::pdb_member_type::field)
+                    if (member_type == LibPdb::MemberType::Field)
                     {
-                        auto const* field = static_cast<const ptv::pdb_member_field*>(this->m_Member);
+                        auto const* field = static_cast<const LibPdb::TypeMemberField*>(this->m_Member);
 
                         return QString::fromStdWString(
                             std::wstring{
-                                field->get_type_name()
+                                field->GetTypeName()
                             }
                         );
                     }
-                    else if (member_type == ptv::pdb_member_type::inherited)
+                    else if (member_type == LibPdb::MemberType::Inherited)
                     {
-                        auto const* inherited = static_cast<const ptv::pdb_member_inherited*>(this->m_Member);
+                        auto const* inherited = static_cast<const LibPdb::TypeMemberInherited*>(this->m_Member);
 
                         return QString::fromStdWString(
                             std::wstring{
-                                inherited->get_name()
+                                inherited->GetName()
                             }
                         );
                     }
@@ -79,21 +79,21 @@ namespace ptvapp::models
 
             case TypeDescriptorElementRole::Name:
                 {
-                    if (member_type == ptv::pdb_member_type::field)
+                    if (member_type == LibPdb::MemberType::Field)
                     {
-                        auto const* field = static_cast<const ptv::pdb_member_field*>(this->m_Member);
+                        auto const* field = static_cast<const LibPdb::TypeMemberField*>(this->m_Member);
 
                         return QString::fromStdWString(
                             std::wstring{
-                                field->get_name()
+                                field->GetName()
                             }
                         );
                     }
-                    else if (member_type == ptv::pdb_member_type::padding)
+                    else if (member_type == LibPdb::MemberType::Padding)
                     {
-                        auto const* padding = static_cast<const ptv::pdb_member_padding*>(this->m_Member);
+                        auto const* padding = static_cast<const LibPdb::TypeMemberPadding*>(this->m_Member);
 
-                        if (padding->is_spurious())
+                        if (padding->IsSpurious())
                         {
                             return "<<spurious-padding>>";
                         }
@@ -108,11 +108,11 @@ namespace ptvapp::models
 
             case TypeDescriptorElementRole::Bits:
                 {
-                    if (member_type == ptv::pdb_member_type::field)
+                    if (member_type == LibPdb::MemberType::Field)
                     {
-                        auto const* field = static_cast<const ptv::pdb_member_field*>(this->m_Member);
+                        auto const* field = static_cast<const LibPdb::TypeMemberField*>(this->m_Member);
 
-                        if (auto const bits = field->get_bits(); bits.has_value())
+                        if (auto const bits = field->GetBits(); bits.has_value())
                         {
                             auto const value = bits.value();
 
@@ -127,48 +127,48 @@ namespace ptvapp::models
 
             case TypeDescriptorElementRole::Size:
                 {
-                    return this->m_Member->get_size();
+                    return this->m_Member->GetSize();
                 }
 
             case TypeDescriptorElementRole::Offset:
                 {
-                    return this->m_Member->get_offset();
+                    return this->m_Member->GetOffset();
                 }
 
             case TypeDescriptorElementRole::IsPadding:
                 {
-                    return member_type == ptv::pdb_member_type::padding;
+                    return member_type == LibPdb::MemberType::Padding;
                 }
 
             case TypeDescriptorElementRole::IsSpurious:
                 {
-                    if (member_type == ptv::pdb_member_type::padding)
+                    if (member_type == LibPdb::MemberType::Padding)
                     {
-                        auto const* padding = static_cast<const ptv::pdb_member_padding*>(this->m_Member);
-                        return padding->is_spurious();
+                        auto const* padding = static_cast<const LibPdb::TypeMemberPadding*>(this->m_Member);
+                        return padding->IsSpurious();
                     }
 
                     break;
                 }
             case TypeDescriptorElementRole::Padding:
                 {
-                    if (member_type == ptv::pdb_member_type::inherited)
+                    if (member_type == LibPdb::MemberType::Inherited)
                     {
-                        auto const* padding = static_cast<const ptv::pdb_member_inherited*>(this->m_Member);
-                        return padding->get_padding();
+                        auto const* padding = static_cast<const LibPdb::TypeMemberInherited*>(this->m_Member);
+                        return padding->GetPadding();
                     }
 
                     break;
                 }
             case TypeDescriptorElementRole::Kind:
                 {
-                    if (member_type == ptv::pdb_member_type::field)
+                    if (member_type == LibPdb::MemberType::Field)
                     {
-                        auto const& field = static_cast<const ptv::pdb_member_field&>(*this->m_Member);
+                        auto const& field = static_cast<const LibPdb::TypeMemberField&>(*this->m_Member);
 
-                        switch (field.get_kind())
+                        switch (field.GetKind())
                         {
-                        case ptv::pdb_member_kind::vtable:
+                        case LibPdb::MemberKind::VTable:
                             {
                                 return QObject::tr("VTable Pointer");
                             }
@@ -180,15 +180,15 @@ namespace ptvapp::models
 
                         return QObject::tr("Field");
                     }
-                    else if (member_type == ptv::pdb_member_type::inherited)
+                    else if (member_type == LibPdb::MemberType::Inherited)
                     {
                         return QObject::tr("Base Type");
                     }
-                    else if (member_type == ptv::pdb_member_type::padding)
+                    else if (member_type == LibPdb::MemberType::Padding)
                     {
-                        auto const* padding = static_cast<const ptv::pdb_member_padding*>(this->m_Member);
+                        auto const* padding = static_cast<const LibPdb::TypeMemberPadding*>(this->m_Member);
 
-                        if (padding->is_spurious())
+                        if (padding->IsSpurious())
                         {
                             return QObject::tr("Spurious Padding");
                         }
@@ -246,7 +246,7 @@ namespace ptvapp::models
     }
 
     void TypeDescriptorModel::FromDescriptor(
-        std::unique_ptr<ptv::pdb_type_descriptor>&& descriptor
+        std::unique_ptr<LibPdb::TypeDescriptor>&& descriptor
     ) noexcept
     {
         this->m_CurrentDescriptor = std::move(descriptor);
@@ -256,7 +256,7 @@ namespace ptvapp::models
         this->m_Root = nullptr;
 
         this->m_Root = new TypeDescriptorElement(nullptr, nullptr);
-        this->SetupModelData(this->m_CurrentDescriptor->get_members(), m_Root);
+        this->SetupModelData(this->m_CurrentDescriptor->GetMembers(), m_Root);
 
         this->endResetModel();
     }
@@ -297,13 +297,13 @@ namespace ptvapp::models
             {
                 if (auto const* member = item->GetMember(); member != nullptr)
                 {
-                    auto const member_type = member->get_member_type();
+                    auto const member_type = member->GetMemberType();
 
-                    if (member_type == ptv::pdb_member_type::padding)
+                    if (member_type == LibPdb::MemberType::Padding)
                     {
-                        auto const* padding = static_cast<const ptv::pdb_member_padding*>(member);
+                        auto const* padding = static_cast<const LibPdb::TypeMemberPadding*>(member);
 
-                        if (padding->is_spurious())
+                        if (padding->IsSpurious())
                         {
                             return QColor::fromRgb(255, 50, 50);
                         }
@@ -450,7 +450,7 @@ namespace ptvapp::models
     }
 
     void TypeDescriptorModel::SetupModelData(
-        const std::vector<std::unique_ptr<ptv::pdb_abstract_type_member>>& members,
+        const std::vector<std::unique_ptr<LibPdb::BaseTypeMember>>& members,
         TypeDescriptorElement* parent
     ) noexcept
     {
@@ -458,13 +458,13 @@ namespace ptvapp::models
         {
             auto item = new TypeDescriptorElement(member.get(), parent);
 
-            auto const member_type = member->get_member_type();
+            auto const member_type = member->GetMemberType();
 
-            if (member_type == ptv::pdb_member_type::inherited)
+            if (member_type == LibPdb::MemberType::Inherited)
             {
-                auto* detailed = static_cast<ptv::pdb_member_inherited*>(member.get());
+                auto* detailed = static_cast<LibPdb::TypeMemberInherited*>(member.get());
 
-                SetupModelData(detailed->get_members(), item);
+                SetupModelData(detailed->GetMembers(), item);
             }
 
             parent->AppendChild(item);
