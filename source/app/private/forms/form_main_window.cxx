@@ -7,7 +7,7 @@ namespace ptvapp::forms
 {
     main_window::main_window() noexcept
     {
-        this->setWindowTitle("pdb type viewer");
+        this->setWindowTitle(tr("PDB Type Viewer"));
         this->setUnifiedTitleAndToolBarOnMac(true);
 
         this->create_actions();
@@ -17,7 +17,7 @@ namespace ptvapp::forms
 
     void main_window::about() noexcept
     {
-        QMessageBox::about(this, tr("About pdb-type-viewer"), tr("pdb-type-viewer"));
+        QMessageBox::about(this, tr("About pdb-type-viewer"), tr("PDB Type Viewer"));
     }
 
     void main_window::load() noexcept
@@ -33,14 +33,11 @@ namespace ptvapp::forms
         m_pdb_file = ptv::create();
         if (m_pdb_file->load(path.toString().toStdWString()))
         {
-            QStringList list{};
-
-            for (auto const& type : m_pdb_file->get_types())
-            {
-                list << QString::fromStdWString(std::wstring{ type->get_name() });
-            }
-
             m_type_list_model->set_pdb_file(m_pdb_file.get());
+
+            this->setWindowTitle(
+                tr("PDB Type Viewer") + QString{ " - %1" }.arg(path)
+            );
         }
     }
 
@@ -94,6 +91,7 @@ namespace ptvapp::forms
         this->m_type_model = new ptvapp::models::type_descriptor_model(this);
         this->m_type_view = new QTreeView(this);
         this->m_type_view->setModel(this->m_type_model);
+        this->m_type_view->setSelectionMode(QTreeView::MultiSelection);
         this->m_type_view->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
 
         this->setCentralWidget(this->m_type_view);
@@ -118,6 +116,8 @@ namespace ptvapp::forms
             &QItemSelectionModel::currentChanged,
             [&](const QModelIndex& current, [[maybe_unused]] const QModelIndex& previous)
             {
+                (void)previous;
+
                 if (current.isValid())
                 {
                     if (auto const underlying = this->m_type_list_model_proxy->mapToSource(current); underlying.isValid())

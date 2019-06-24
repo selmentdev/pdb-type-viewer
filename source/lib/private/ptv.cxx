@@ -690,26 +690,26 @@ namespace ptv::impl
 
                         if (dia::is_const(symbol))
                         {
-                            result += L"const ";
+                            result += L" const";
                         }
 
                         if (dia::is_volatile(symbol))
                         {
-                            result += L"volatile ";
+                            result += L" volatile";
                         }
 
                         if (dia::is_unaligned(symbol))
                         {
-                            result += L"__unaligned ";
+                            result += L" __unaligned";
                         }
 
                         if (dia::is_reference(symbol))
                         {
-                            result += L"& ";
+                            result += L" &";
                         }
                         else
                         {
-                            result += L"* ";
+                            result += L" *";
                         }
 
                         break;
