@@ -33,6 +33,19 @@ namespace ptvapp::forms
                 layout->addWidget(version);
             }
 
+            if (auto * link = new QLabel(
+                QString{
+                    R"(<a href="https://github.com/selmentdev/pdb-type-viewer">https://github.com/selmentdev/pdb-type-viewer</a>)"
+                }
+            ))
+            {
+                //link->setTextFormat(Qt::RichText);
+                link->setTextInteractionFlags(Qt::TextBrowserInteraction);
+                link->setOpenExternalLinks(true);
+
+                layout->addWidget(link);
+            }
+
             if (auto* license = new QLabel())
             {
                 QFile file{ ":/license.txt" };
