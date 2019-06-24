@@ -9,6 +9,7 @@ project "ptv-ui"
         "public/**.hxx",
         "private/**.cxx",
         "*.lua",
+        "resources/*",
     }
 
     language "c++"

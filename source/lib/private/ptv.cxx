@@ -52,6 +52,15 @@ namespace ptv::dia
         return result;
     }
 
+    int32_t count(
+        Microsoft::WRL::ComPtr<IDiaEnumSymbols> enumerator
+    ) noexcept
+    {
+        LONG result{};
+        enumerator->get_Count(&result);
+        return static_cast<int32_t>(result);
+    }
+
     std::wstring_view name(
         Microsoft::WRL::ComPtr<IDiaSymbol> symbol
     ) noexcept
@@ -421,7 +430,8 @@ namespace ptv::impl
         virtual ~pdb_file_impl() noexcept = default;
 
         virtual bool load(
-            std::wstring_view path
+            std::wstring_view path,
+            std::function<void(int32_t current, int32_t total)> progress
         ) noexcept override
         {
             Microsoft::WRL::ComPtr<IDiaDataSource> source{};
@@ -476,8 +486,18 @@ namespace ptv::impl
 
             if (auto enum_types = dia::find_children(global_scope, SymTagUDT); enum_types != nullptr)
             {
+                auto total = dia::count(enum_types);
+                int32_t current = 0;
+
                 for (auto child = dia::next(enum_types); child != nullptr; child = dia::next(enum_types))
                 {
+                    ++current;
+
+                    if (progress)
+                    {
+                        progress(current, total);
+                    }
+
                     auto name = dia::name(child);
                     unique_types.insert(
                         std::make_pair(

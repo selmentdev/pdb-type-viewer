@@ -28,14 +28,20 @@ namespace ptvapp::forms
                 layout->addWidget(title, 0);
             }
 
-            if (auto* copyright = new QLabel(tr(u8"Copyright \u00a9 Karol Grzybowski")))
-            {
-                layout->addWidget(copyright, 0, Qt::AlignRight);
-            }
-
             if (auto* version = new QLabel(QString{ "Qt Version: %1" }.arg(qVersion())))
             {
                 layout->addWidget(version);
+            }
+
+            if (auto* license = new QLabel())
+            {
+                QFile file{ ":/license.txt" };
+                if (file.open(QIODevice::ReadOnly))
+                {
+                    license->setText(file.readAll());
+                }
+
+                layout->addWidget(license);
             }
 
             if (auto* buttonPane = new QWidget(this))

@@ -142,7 +142,7 @@ int main(int argc, char* argv[])
         auto session = ptv::create();
         auto path = ptv::helpers::convert(argv[1]);
 
-        if (session->load(path))
+        if (session->load(path, {}))
         {
             for (auto const& type : session->get_types())
             {

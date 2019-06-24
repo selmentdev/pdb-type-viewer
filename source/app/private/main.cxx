@@ -9,7 +9,7 @@
 int main(int argc, char* argv[])
 {
     QApplication app(argc, argv);
-    //Q_INIT_RESOURCE(ptvapp);
+    Q_INIT_RESOURCE(app);
 
     QCoreApplication::setOrganizationName("Graphyte");
     QCoreApplication::setApplicationName("Pdb Type Viewer");

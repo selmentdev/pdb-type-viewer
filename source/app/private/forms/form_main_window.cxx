@@ -33,9 +33,25 @@ namespace ptvapp::forms
 
     void main_window::load_from_path(QStringView path) noexcept
     {
-        m_pdb_file = ptv::create();
-        if (m_pdb_file->load(path.toString().toStdWString()))
+        QProgressDialog dialog{ this };
+        dialog.setWindowFlag(Qt::MSWindowsFixedSizeDialogHint);
+        dialog.setWindowFlag(Qt::WindowContextHelpButtonHint, false);
+        dialog.setWindowFlag(Qt::WindowCloseButtonHint, false);
+        dialog.setCancelButton(nullptr);
+        dialog.setAutoClose(true);
+        dialog.setModal(true);
+        dialog.show();
+        qApp->processEvents();
+
+        auto pdbfile = ptv::create();
+        if (pdbfile->load(path.toString().toStdWString(), [&](int32_t current, int32_t total)
         {
+            dialog.setMaximum(total);
+            dialog.setValue(current);
+            qApp->processEvents();
+        }))
+        {
+            m_pdb_file = std::move(pdbfile);
             m_type_list_model->set_pdb_file(m_pdb_file.get());
 
             this->setWindowTitle(
