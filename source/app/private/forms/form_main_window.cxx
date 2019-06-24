@@ -70,13 +70,6 @@ namespace ptvapp::forms
             
             dialog.setLabelText(elidedText);
 
-            //if (text.length() > 100)
-            //{
-            //    text.truncate(100);
-            //    text += "...";
-            //}
-
-
             qApp->processEvents();
         }))
         {
