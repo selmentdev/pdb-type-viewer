@@ -80,6 +80,16 @@ namespace ptvapp::forms
                 tr("PDB Type Viewer") + QString{ " - %1" }.arg(path)
             );
         }
+        else
+        {
+            dialog.close();
+
+            QMessageBox::warning(
+                this,
+                "Loading PDB failure",
+                QString{ "Cannot load %1 file" }.arg(path)
+            );
+        }
     }
 
     void MainWindow::CreateActions() noexcept

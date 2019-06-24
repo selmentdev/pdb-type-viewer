@@ -1,6 +1,7 @@
 <!DOCTYPE RCC>
 <RCC version="1.0">
-    <qresource>
-        <file>license.txt</file>
-    </qresource>
+  <qresource>
+    <file>license.txt</file>
+    <file>logo.png</file>
+  </qresource>
 </RCC>

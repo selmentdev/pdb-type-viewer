@@ -508,6 +508,10 @@ namespace LibPdb::Detail
                     );
                 }
             }
+            else
+            {
+                return false;
+            }
 
             std::vector<std::unique_ptr<LibPdb::Type>> types{};
             types.reserve(unique_types.size());

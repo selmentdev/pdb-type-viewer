@@ -19,19 +19,23 @@ namespace ptvapp::forms
     {
         if (auto* layout = new QVBoxLayout())
         {
-            if (auto* title = new QLabel(this->windowTitle(), this))
+            //
+            // Add image header.
+            //
+
+            if (auto* header = new QLabel(this))
             {
-                auto font = title->font();
-                font.setPointSizeF(18.0F);
-                font.setBold(true);
-                title->setFont(font);
-                layout->addWidget(title, 0);
+                header->setBackgroundRole(QPalette::Base);
+
+                QImage image(":/logo.png");
+                header->setPixmap(QPixmap::fromImage(std::move(image)));
+                layout->addWidget(header);
             }
 
-            if (auto* version = new QLabel(QString{ "Qt Version: %1" }.arg(qVersion())))
-            {
-                layout->addWidget(version);
-            }
+
+            //
+            // Add link to github repo.
+            //
 
             if (auto * link = new QLabel(
                 QString{
@@ -46,6 +50,21 @@ namespace ptvapp::forms
                 layout->addWidget(link);
             }
 
+
+            //
+            // Add Qt Version information.
+            //
+
+            if (auto* version = new QLabel(QString{ "Qt Version: %1" }.arg(qVersion())))
+            {
+                layout->addWidget(version);
+            }
+
+
+            //
+            // Add license information.
+            //
+
             if (auto* license = new QLabel())
             {
                 QFile file{ ":/license.txt" };
@@ -56,6 +75,11 @@ namespace ptvapp::forms
 
                 layout->addWidget(license);
             }
+
+
+            //
+            // Add pane with OK button.
+            //
 
             if (auto* buttonPane = new QWidget(this))
             {
