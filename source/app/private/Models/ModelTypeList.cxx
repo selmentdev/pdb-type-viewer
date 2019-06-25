@@ -43,18 +43,14 @@ namespace ptvapp::models
     {
         if (index.isValid())
         {
-            auto const row = index.row();
-
-            if (role != Qt::DisplayRole)
+            if (role == Qt::DisplayRole)
             {
-                return {};
-            }
+                auto const item = static_cast<const LibPdb::Type*>(index.internalPointer());
 
-            auto const item = static_cast<const LibPdb::Type*>(index.internalPointer());
-
-            if (item != nullptr)
-            {
-                return QString::fromStdWString(std::wstring{ item->GetName() });
+                if (item != nullptr)
+                {
+                    return QString::fromStdWString(std::wstring{ item->GetName() });
+                }
             }
         }
 
@@ -77,7 +73,7 @@ namespace ptvapp::models
     QModelIndex TypeListModel::parent(const QModelIndex& child) const
     {
         (void)child;
-        return QModelIndex();
+        return {};
     }
     
     int TypeListModel::columnCount(const QModelIndex& parent) const

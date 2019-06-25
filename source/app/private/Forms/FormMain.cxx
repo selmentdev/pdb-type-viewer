@@ -2,6 +2,7 @@
 #include <Forms/FormAboutBox.hxx>
 #include <Models/ModelTypeDescriptor.hxx>
 #include <Models/ModelTypeList.hxx>
+#include <Models/ModelValidationList.hxx>
 #include <QtWidgets>
 
 namespace ptvapp::forms
@@ -11,9 +12,9 @@ namespace ptvapp::forms
         this->setWindowTitle(tr("PDB Type Viewer"));
         this->setUnifiedTitleAndToolBarOnMac(true);
 
-        this->CreateActions();
         this->CreateControls();
         this->CreateStatusBar();
+        this->CreateActions();
     }
 
     void MainWindow::ShowAbout() noexcept
@@ -94,17 +95,28 @@ namespace ptvapp::forms
 
     void MainWindow::CreateActions() noexcept
     {
-        auto* menuFile = menuBar()->addMenu(tr("&File"));
+        if (auto* menuFile = menuBar()->addMenu(tr("&File")))
+        {
+            auto* actionMenuFileOpen = menuFile->addAction(tr("&Open"), this, &MainWindow::LoadPdb);
+            actionMenuFileOpen->setShortcuts(QKeySequence::Open);
 
-        auto* actionMenuFileOpen = menuFile->addAction(tr("&Open"), this, &MainWindow::LoadPdb);
-        actionMenuFileOpen->setShortcuts(QKeySequence::Open);
+            auto* actionMenuFileClose = menuFile->addAction(tr("&Close"), this, &QWidget::close);
+            actionMenuFileClose->setShortcuts(QKeySequence::Close);
+        }
 
-        auto* actionMenuFileClose = menuFile->addAction(tr("&Close"), this, &QWidget::close);
-        actionMenuFileClose->setShortcuts(QKeySequence::Close);
+        if (auto* menuView = menuBar()->addMenu(tr("&View")))
+        {
+            [[maybe_unused]]
+            auto* actionMenuViewTypeList = menuView->addAction(tr("&Type List"), this->m_DockTypeList, &QDockWidget::show);
 
-        auto* menuHelp = menuBar()->addMenu(tr("&Help"));
+            [[maybe_unused]]
+            auto* actionMenuViewIssues = menuView->addAction(tr("&Issues"), this->m_DockValidationIssues, &QDockWidget::show);
+        }
 
-        [[maybe_unused]] auto* actionMenuHelpAbout = menuHelp->addAction(tr("&About"), this, &MainWindow::ShowAbout);
+        if (auto* menuHelp = menuBar()->addMenu(tr("&Help")))
+        {
+            [[maybe_unused]] auto* actionMenuHelpAbout = menuHelp->addAction(tr("&About"), this, &MainWindow::ShowAbout);
+        }
     }
 
     void MainWindow::CreateStatusBar() noexcept
@@ -114,6 +126,20 @@ namespace ptvapp::forms
 
     void MainWindow::CreateControls() noexcept
     {
+        this->m_DockValidationIssues = new QDockWidget(tr("Issues"), this);
+        {
+            //auto* container = new QWidget();
+            this->m_ValidationIssuesView = new QTreeView(this);
+            this->m_ValidationIssuesModel = new models::ValidationModel(this);
+            this->m_ValidationIssuesView->setModel(this->m_ValidationIssuesModel);
+            this->m_ValidationIssuesView->header()->setStretchLastSection(true);
+            this->m_DockValidationIssues->setWidget(this->m_ValidationIssuesView);
+
+            this->addDockWidget(Qt::BottomDockWidgetArea, this->m_DockValidationIssues);
+
+            this->m_ValidationIssuesModel->Add("Ready");
+        }
+
         this->m_DockTypeList = new QDockWidget(tr("Type List"), this);
         this->m_TypeListModel = new ptvapp::models::TypeListModel(this);
 

@@ -11,11 +11,13 @@ class QTreeView;
 class QDockWidget;
 class QListView;
 class QSortFilterProxyModel;
+class QTableView;
 
 namespace ptvapp::models
 {
     class TypeDescriptorModel;
     class TypeListModel;
+    class ValidationModel;
 }
 
 namespace ptvapp::forms
@@ -52,5 +54,10 @@ namespace ptvapp::forms
     private:
         ptvapp::models::TypeDescriptorModel* m_TypeModel;
         QTreeView* m_TypeView;
+
+    private:
+        QDockWidget* m_DockValidationIssues;
+        QTreeView* m_ValidationIssuesView;
+        ptvapp::models::ValidationModel* m_ValidationIssuesModel;
     };
 }

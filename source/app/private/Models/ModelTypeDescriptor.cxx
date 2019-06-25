@@ -204,16 +204,22 @@ namespace ptvapp::models
                 {
                     static constexpr uint64_t CacheLineSize = 64; // TODO: Make this configurable from UI.
 
-                    auto const lower_cacheline = (this->m_Member->GetOffset() + CacheLineSize) / CacheLineSize;
-                    auto const upper_cacheline = (this->m_Member->GetNextOffset() + CacheLineSize - 1) / CacheLineSize;
+                    if (this->m_Member->GetSize() != 0)
+                    {
+                        auto const firstOffset = this->m_Member->GetOffset();
+                        auto const nextOffset = this->m_Member->GetNextOffset();
 
-                    if (lower_cacheline != upper_cacheline)
-                    {
-                        return QString{ "%1 - %2" }.arg(lower_cacheline).arg(upper_cacheline);
-                    }
-                    else
-                    {
-                        return QString{ "%1" }.arg(lower_cacheline);
+                        auto const lower_cacheline = (firstOffset + CacheLineSize) / CacheLineSize;
+                        auto const upper_cacheline = (nextOffset + CacheLineSize - 1) / CacheLineSize;
+
+                        if (lower_cacheline != upper_cacheline)
+                        {
+                            return QString{ "%1 - %2" }.arg(lower_cacheline).arg(upper_cacheline);
+                        }
+                        else
+                        {
+                            return QString{ "%1" }.arg(lower_cacheline);
+                        }
                     }
 
                     break;
