@@ -4,7 +4,7 @@
 #include <QTreeView>
 #include <LibPtv.hxx>
 
-#include <forms/form_main_window.hxx>
+#include <Forms/FormMain.hxx>
 
 int main(int argc, char* argv[])
 {

@@ -1,7 +1,7 @@
-#include <forms/form_main_window.hxx>
-#include <forms/form_about_box.hxx>
-#include <models/model_type_descriptor.hxx>
-#include <models/model_type_list.hxx>
+#include <Forms/FormMain.hxx>
+#include <Forms/FormAboutBox.hxx>
+#include <Models/ModelTypeDescriptor.hxx>
+#include <Models/ModelTypeList.hxx>
 #include <QtWidgets>
 
 namespace ptvapp::forms

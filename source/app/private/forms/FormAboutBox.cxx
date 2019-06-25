@@ -1,4 +1,4 @@
-#include <forms/form_about_box.hxx>
+#include <Forms/FormAboutBox.hxx>
 #include <QtWidgets>
 
 namespace ptvapp::forms

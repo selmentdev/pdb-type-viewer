@@ -1,4 +1,4 @@
-#include <models/model_type_descriptor.hxx>
+#include <Models/ModelTypeDescriptor.hxx>
 #include <LibPtv/TypeMemberInherited.hxx>
 #include <LibPtv/TypeMemberField.hxx>
 #include <LibPtv/TypeMemberPadding.hxx>
