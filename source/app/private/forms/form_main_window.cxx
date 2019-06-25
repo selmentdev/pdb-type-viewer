@@ -142,7 +142,6 @@ namespace ptvapp::forms
         this->m_TypeModel = new ptvapp::models::TypeDescriptorModel(this);
         this->m_TypeView = new QTreeView(this);
         this->m_TypeView->setModel(this->m_TypeModel);
-        this->m_TypeView->setSelectionMode(QTreeView::MultiSelection);
         this->m_TypeView->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
 
         this->setCentralWidget(this->m_TypeView);

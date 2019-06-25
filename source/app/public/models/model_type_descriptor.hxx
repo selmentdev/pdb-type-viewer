@@ -16,6 +16,7 @@ namespace ptvapp::models
         Padding,
         IsPadding,
         IsSpurious,
+        CacheLine,
     };
 
     class TypeDescriptorElement

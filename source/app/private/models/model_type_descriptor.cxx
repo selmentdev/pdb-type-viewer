@@ -200,6 +200,24 @@ namespace ptvapp::models
 
                     break;
                 }
+            case TypeDescriptorElementRole::CacheLine:
+                {
+                    static constexpr uint64_t CacheLineSize = 64; // TODO: Make this configurable from UI.
+
+                    auto const lower_cacheline = (this->m_Member->GetOffset() + CacheLineSize) / CacheLineSize;
+                    auto const upper_cacheline = (this->m_Member->GetNextOffset() + CacheLineSize - 1) / CacheLineSize;
+
+                    if (lower_cacheline != upper_cacheline)
+                    {
+                        return QString{ "%1 - %2" }.arg(lower_cacheline).arg(upper_cacheline);
+                    }
+                    else
+                    {
+                        return QString{ "%1" }.arg(lower_cacheline);
+                    }
+
+                    break;
+                }
             }
         }
 
@@ -279,6 +297,8 @@ namespace ptvapp::models
             return TypeDescriptorElementRole::Padding;
         case 6:
             return TypeDescriptorElementRole::Kind;
+        case 7:
+            return TypeDescriptorElementRole::CacheLine;
         }
 
         return TypeDescriptorElementRole::Padding;
@@ -366,6 +386,8 @@ namespace ptvapp::models
                 return tr("Padding");
             case 6:
                 return tr("Kind");
+            case 7:
+                return tr("Cache Line");
             }
         }
 
@@ -446,7 +468,7 @@ namespace ptvapp::models
     ) const
     {
         (void)parent;
-        return 7;
+        return 8;
     }
 
     void TypeDescriptorModel::SetupModelData(
