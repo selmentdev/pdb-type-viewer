@@ -2,6 +2,7 @@
 #include <QAbstractItemModel>
 #include <LibPtv/Session.hxx>
 #include <LibPtv/Type.hxx>
+#include <optional>
 
 namespace ptvapp::models
 {
@@ -9,6 +10,8 @@ namespace ptvapp::models
     {
     private:
         const LibPdb::Type* m_Type;
+
+        std::optional<uint64_t> m_Padding;
 
     public:
         explicit TypeListElement(
@@ -22,6 +25,11 @@ namespace ptvapp::models
         const LibPdb::Type* GetType() const noexcept
         {
             return this->m_Type;
+        }
+
+        const std::optional<uint64_t>& GetPadding() const noexcept
+        {
+            return this->m_Padding;
         }
     };
 }
