@@ -46,11 +46,11 @@ namespace ptvapp::models
             int role = Qt::DisplayRole
         ) const override;
 
-        Qt::ItemFlags flags(
+        virtual Qt::ItemFlags flags(
             const QModelIndex& index
         ) const override;
 
-        QVariant headerData(
+        virtual QVariant headerData(
             int section,
             Qt::Orientation orientation,
             int role = Qt::DisplayRole

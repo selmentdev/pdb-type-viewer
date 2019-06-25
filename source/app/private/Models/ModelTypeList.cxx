@@ -36,10 +36,47 @@ namespace ptvapp::models
     {
         if (parent.column() <= 0)
         {
+            if (parent.isValid())
+            {
+                return 0;
+            }
+
             return this->m_Types.count();
         }
 
         return 0;
+    }
+
+    Qt::ItemFlags TypeListModel::flags(
+        const QModelIndex& index
+    ) const
+    {
+        if (index.isValid())
+        {
+            return QAbstractItemModel::flags(index);
+        }
+
+        return {};
+    }
+
+    QVariant TypeListModel::headerData(
+        int section,
+        Qt::Orientation orientation,
+        int role
+    ) const
+    {
+        if (orientation == Qt::Horizontal && role == Qt::DisplayRole)
+        {
+            switch (section)
+            {
+            case 0:
+                return tr("Type");
+            case 1:
+                return tr("Padding");
+            }
+        }
+
+        return {};
     }
 
     QVariant TypeListModel::data(
@@ -55,7 +92,17 @@ namespace ptvapp::models
 
                 if (item != nullptr)
                 {
-                    return QString::fromStdWString(std::wstring{ item->GetName() });
+                    switch (index.column())
+                    {
+                    case 0:
+                        {
+                            return QString::fromStdWString(std::wstring{ item->GetName() });
+                        }
+                    default:
+                        {
+                            break;
+                        }
+                    }
                 }
             }
         }
@@ -65,16 +112,13 @@ namespace ptvapp::models
     
     QModelIndex TypeListModel::index(int row, int column, const QModelIndex& parent) const
     {
-        if (this->hasIndex(row, column, parent))
-        {
-            return this->createIndex(
-                row,
-                column,
-                const_cast<LibPdb::Type*>(this->m_Types[row].GetType())
-            );
-        }
+        (void)parent;
 
-        return {};
+        return this->createIndex(
+            row,
+            column,
+            const_cast<LibPdb::Type*>(this->m_Types[row].GetType())
+        );
     }
 
     QModelIndex TypeListModel::parent(const QModelIndex& child) const

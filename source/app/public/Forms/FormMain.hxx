@@ -48,7 +48,7 @@ namespace ptvapp::forms
     private:
         ptvapp::models::TypeListModel* m_TypeListModel;
         QSortFilterProxyModel* m_TypeListModelProxy;
-        QListView* m_TypeListView;
+        QTreeView* m_TypeListView;
         QDockWidget* m_DockTypeList;
 
     private:

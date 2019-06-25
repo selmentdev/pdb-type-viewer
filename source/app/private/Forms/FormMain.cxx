@@ -148,7 +148,7 @@ namespace ptvapp::forms
 
         auto* container = new QWidget();
 
-        this->m_TypeListView = new QListView(container);
+        this->m_TypeListView = new QTreeView(container);
         this->m_TypeListView->setModel(this->m_TypeListModelProxy);
         this->m_TypeListView->setEditTriggers(QAbstractItemView::NoEditTriggers);
 

@@ -91,36 +91,36 @@ namespace ptvapp::models
         ) noexcept;
 
     public: // interface QAbstractItemModel
-        QVariant data(
+        virtual QVariant data(
             const QModelIndex& index,
             int role
         ) const override;
 
-        Qt::ItemFlags flags(
+        virtual Qt::ItemFlags flags(
             const QModelIndex& index
         ) const override;
 
-        QVariant headerData(
+        virtual QVariant headerData(
             int section,
             Qt::Orientation orientation,
             int role = Qt::DisplayRole
         ) const override;
 
-        QModelIndex index(
+        virtual QModelIndex index(
             int row,
             int column,
             const QModelIndex& parent = {}
         ) const override;
 
-        QModelIndex parent(
+        virtual QModelIndex parent(
             const QModelIndex& index
         ) const override;
 
-        int rowCount(
+        virtual int rowCount(
             const QModelIndex& parent = {}
         ) const override;
 
-        int columnCount(
+        virtual int columnCount(
             const QModelIndex& parent = {}
         ) const override;
     };
