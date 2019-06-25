@@ -6,7 +6,7 @@ namespace ptvapp::models
         QObject* parent
     ) noexcept
         : QAbstractItemModel{ parent }
-        , m_Session{}
+        , m_Types{}
     {
     }
 
@@ -14,10 +14,19 @@ namespace ptvapp::models
     {
     }
 
-    void TypeListModel::SetSession(const LibPdb::Session* session) noexcept
+    void TypeListModel::Setup(
+        const std::vector<std::unique_ptr<LibPdb::Type>>& types
+    ) noexcept
     {
         this->beginResetModel();
-        this->m_Session = session;
+
+        m_Types.clear();
+
+        for (auto const& type : types)
+        {
+            m_Types.push_back(TypeListElement{ type.get() });
+        }
+
         this->endResetModel();
     }
 
@@ -27,10 +36,7 @@ namespace ptvapp::models
     {
         if (parent.column() <= 0)
         {
-            if (this->m_Session != nullptr)
-            {
-                return static_cast<int>(this->m_Session->GetTypes().size());
-            }
+            return this->m_Types.count();
         }
 
         return 0;
@@ -59,12 +65,13 @@ namespace ptvapp::models
     
     QModelIndex TypeListModel::index(int row, int column, const QModelIndex& parent) const
     {
-        (void)parent;
-
-        if (this->m_Session != nullptr)
+        if (this->hasIndex(row, column, parent))
         {
-            auto* type = this->m_Session->GetTypes()[row].get();
-            return createIndex(row, column, type);
+            return this->createIndex(
+                row,
+                column,
+                const_cast<LibPdb::Type*>(this->m_Types[row].GetType())
+            );
         }
 
         return {};
@@ -79,6 +86,6 @@ namespace ptvapp::models
     int TypeListModel::columnCount(const QModelIndex& parent) const
     {
         (void)parent;
-        return 1;
+        return 2;
     }
 }

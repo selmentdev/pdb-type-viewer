@@ -5,11 +5,34 @@
 
 namespace ptvapp::models
 {
+    class TypeListElement
+    {
+    private:
+        const LibPdb::Type* m_Type;
+
+    public:
+        explicit TypeListElement(
+            const LibPdb::Type* type
+        ) noexcept
+            : m_Type{ type }
+        {
+        }
+
+    public:
+        const LibPdb::Type* GetType() const noexcept
+        {
+            return this->m_Type;
+        }
+    };
+}
+
+namespace ptvapp::models
+{
     class TypeListModel : public QAbstractItemModel
     {
         Q_OBJECT
     private:
-        const LibPdb::Session* m_Session;
+        QList<TypeListElement> m_Types;
 
     public:
         explicit TypeListModel(
@@ -18,7 +41,9 @@ namespace ptvapp::models
 
         virtual ~TypeListModel() noexcept;
 
-        void SetSession(const LibPdb::Session* file) noexcept;
+        void Setup(
+            const std::vector<std::unique_ptr<LibPdb::Type>>& types
+        ) noexcept;
 
     public:
         virtual int rowCount(

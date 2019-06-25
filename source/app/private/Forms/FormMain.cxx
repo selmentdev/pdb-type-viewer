@@ -75,7 +75,7 @@ namespace ptvapp::forms
         }))
         {
             m_PdbFile = std::move(pdbfile);
-            m_TypeListModel->SetSession(m_PdbFile.get());
+            m_TypeListModel->Setup(m_PdbFile->GetTypes());
 
             this->setWindowTitle(
                 tr("PDB Type Viewer") + QString{ " - %1" }.arg(path)
