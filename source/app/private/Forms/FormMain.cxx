@@ -200,6 +200,8 @@ namespace ptvapp::forms
                 this->m_ValidationIssuesModel->Add("Ready");
 
                 this->m_ValidationIssuesView->setModel(this->m_ValidationIssuesModel);
+                this->m_ValidationIssuesView->setSortingEnabled(true);
+                this->m_ValidationIssuesView->setEditTriggers(QAbstractItemView::NoEditTriggers);
                 this->m_ValidationIssuesView->header()->setStretchLastSection(true);
 
                 this->m_DockValidationIssues->setWidget(this->m_ValidationIssuesView);
@@ -223,6 +225,7 @@ namespace ptvapp::forms
                 this->m_TypeListView = new QTreeView(container);
                 this->m_TypeListView->setModel(this->m_TypeListModelProxy);
                 this->m_TypeListView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+                this->m_TypeListView->setSortingEnabled(true);
 
                 this->m_TypeListViewFilter = new QLineEdit(container);
 

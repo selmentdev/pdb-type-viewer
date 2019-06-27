@@ -33,31 +33,6 @@ namespace ptvapp::models
         this->endResetModel();
     }
 
-    static std::optional<uint64_t> GetPaddingForType(
-        LibPdb::Session& session,
-        const LibPdb::Type& type
-        ) noexcept
-    {
-        if (auto descriptor = session.GetDescriptor(type); descriptor != nullptr)
-        {
-            if (auto const& members = descriptor->GetMembers(); !members.empty())
-            {
-                auto const& analyzedType = members.front();
-                if (analyzedType->GetMemberType() == LibPdb::MemberType::Inherited)
-                {
-                    auto const& actualType = static_cast<const LibPdb::TypeMemberInherited&>(*analyzedType);
-
-                    if (auto const padding = actualType.GetPadding(); padding != 0)
-                    {
-                        return padding;
-                    }
-                }
-            }
-        }
-
-        return {};
-    }
-
     void TypeListModel::DoAnalyze(
         LibPdb::Session& session,
         std::function<void(const QString& type, int32_t current, int32_t total)> callback
@@ -80,14 +55,20 @@ namespace ptvapp::models
 
                 ++current;
 
-                type->SetPadding(
-                    std::move(
-                        GetPaddingForType(
-                            session,
-                            *type->GetType()
-                        )
-                    )
-                );
+                if (auto descriptor = session.GetDescriptor(*type->GetType()); descriptor != nullptr)
+                {
+                    if (auto const& members = descriptor->GetMembers(); !members.empty())
+                    {
+                        auto const& analyzedType = members.front();
+                        if (analyzedType->GetMemberType() == LibPdb::MemberType::Inherited)
+                        {
+                            auto const& actualType = static_cast<const LibPdb::TypeMemberInherited&>(*analyzedType);
+
+                            type->SetPadding(actualType.GetPadding());
+                            type->SetSize(actualType.GetSize());
+                        }
+                    }
+                }
             }
         }
     }
@@ -134,6 +115,8 @@ namespace ptvapp::models
             case 0:
                 return tr("Type");
             case 1:
+                return tr("Size");
+            case 2:
                 return tr("Padding");
             }
         }
@@ -161,6 +144,15 @@ namespace ptvapp::models
                             return item->GetName();
                         }
                     case 1:
+                        {
+                            if (auto const& size = item->GetSize(); size.has_value())
+                            {
+                                return size.value();
+                            }
+
+                            break;
+                        }
+                    case 2:
                         {
                             if (auto const& padding = item->GetPadding(); padding.has_value())
                             {
@@ -201,6 +193,6 @@ namespace ptvapp::models
     int TypeListModel::columnCount(const QModelIndex& parent) const
     {
         (void)parent;
-        return 2;
+        return 3;
     }
 }

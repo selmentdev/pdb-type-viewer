@@ -11,6 +11,7 @@ namespace ptvapp::models
     private:
         const LibPdb::Type* m_Type;
 
+        std::optional<uint64_t> m_Size;
         std::optional<uint64_t> m_Padding;
 
     public:
@@ -18,6 +19,8 @@ namespace ptvapp::models
             const LibPdb::Type* type
         ) noexcept
             : m_Type{ type }
+            , m_Size{}
+            , m_Padding{}
         {
         }
 
@@ -42,6 +45,16 @@ namespace ptvapp::models
         void SetPadding(std::optional<uint64_t>&& value) noexcept
         {
             this->m_Padding = std::move(value);
+        }
+
+        const std::optional<uint64_t>& GetSize() const noexcept
+        {
+            return this->m_Size;
+        }
+
+        void SetSize(std::optional<uint64_t>&& value) noexcept
+        {
+            this->m_Size = std::move(value);
         }
     };
 }
