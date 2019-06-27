@@ -12,6 +12,8 @@ class QDockWidget;
 class QListView;
 class QSortFilterProxyModel;
 class QTableView;
+class QLineEdit;
+class QPushButton;
 
 namespace ptvapp::models
 {
@@ -36,6 +38,7 @@ namespace ptvapp::forms
     private slots:
         void ShowAbout() noexcept;
         void LoadPdb() noexcept;
+        void DoAnalyze() noexcept;
 
     private:
         void CreateActions() noexcept;
@@ -49,7 +52,9 @@ namespace ptvapp::forms
         ptvapp::models::TypeListModel* m_TypeListModel;
         QSortFilterProxyModel* m_TypeListModelProxy;
         QTreeView* m_TypeListView;
+        QLineEdit* m_TypeListViewFilter;
         QDockWidget* m_DockTypeList;
+        QPushButton* m_TypeListAnalyzeButton;
 
     private:
         ptvapp::models::TypeDescriptorModel* m_TypeModel;

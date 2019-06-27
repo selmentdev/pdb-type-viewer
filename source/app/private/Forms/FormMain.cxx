@@ -32,9 +32,57 @@ namespace ptvapp::forms
         }
     }
 
+    void MainWindow::DoAnalyze() noexcept
+    {
+        if (this->m_PdbFile != nullptr)
+        {
+            QProgressDialog dialog{ this };
+            dialog.setWindowTitle(tr("Analyzing..."));
+            dialog.setWindowFlag(Qt::MSWindowsFixedSizeDialogHint);
+            dialog.setWindowFlag(Qt::WindowContextHelpButtonHint, false);
+            dialog.setWindowFlag(Qt::WindowCloseButtonHint, false);
+            dialog.setCancelButton(nullptr);
+            dialog.setAutoClose(true);
+            dialog.setModal(true);
+
+            auto label = new QLabel(&dialog);
+            label->setMaximumWidth(560);
+            label->setMinimumWidth(560);
+            label->setWordWrap(true);
+
+            dialog.setLabel(label);
+
+            dialog.show();
+
+            qApp->processEvents();
+
+            this->m_TypeListModel->DoAnalyze(
+                *this->m_PdbFile,
+                [&](const QString& type, int32_t current, int32_t total)
+                {
+                    dialog.setMaximum(total);
+                    dialog.setValue(current);
+
+                    QFontMetrics metrics(label->font());
+
+                    auto elidedText = metrics.elidedText(
+                        type,
+                        Qt::ElideRight,
+                        label->width()
+                    );
+
+                    dialog.setLabelText(elidedText);
+
+                    qApp->processEvents();
+                }
+            );
+        }
+    }
+
     void MainWindow::LoadFromPath(QStringView path) noexcept
     {
         QProgressDialog dialog{ this };
+        dialog.setWindowTitle(tr("Loading..."));
         dialog.setWindowFlag(Qt::MSWindowsFixedSizeDialogHint);
         dialog.setWindowFlag(Qt::WindowContextHelpButtonHint, false);
         dialog.setWindowFlag(Qt::WindowCloseButtonHint, false);
@@ -67,7 +115,11 @@ namespace ptvapp::forms
             );
 
             QFontMetrics metrics(label->font());
-            auto elidedText = metrics.elidedText(text, Qt::ElideRight, label->width());
+            auto elidedText = metrics.elidedText(
+                text,
+                Qt::ElideRight,
+                label->width()
+            );
             
             dialog.setLabelText(elidedText);
 
@@ -95,7 +147,7 @@ namespace ptvapp::forms
 
     void MainWindow::CreateActions() noexcept
     {
-        if (auto* menuFile = menuBar()->addMenu(tr("&File")))
+        if (auto* menuFile = this->menuBar()->addMenu(tr("&File")))
         {
             auto* actionMenuFileOpen = menuFile->addAction(tr("&Open"), this, &MainWindow::LoadPdb);
             actionMenuFileOpen->setShortcuts(QKeySequence::Open);
@@ -104,7 +156,20 @@ namespace ptvapp::forms
             actionMenuFileClose->setShortcuts(QKeySequence::Close);
         }
 
-        if (auto* menuView = menuBar()->addMenu(tr("&View")))
+        if (auto* menuAnalyze = this->menuBar()->addMenu(tr("&Analyze")))
+        {
+            [[maybe_unused]]
+            auto* actionMenuAnalyzeAnalyze = menuAnalyze->addAction(tr("&Analyze"), this, &MainWindow::DoAnalyze);
+
+            connect(
+                this->m_TypeListAnalyzeButton,
+                &QPushButton::clicked,
+                actionMenuAnalyzeAnalyze,
+                &QAction::triggered
+            );
+        }
+
+        if (auto* menuView = this->menuBar()->addMenu(tr("&View")))
         {
             [[maybe_unused]]
             auto* actionMenuViewTypeList = menuView->addAction(tr("&Type List"), this->m_DockTypeList, &QDockWidget::show);
@@ -113,7 +178,7 @@ namespace ptvapp::forms
             auto* actionMenuViewIssues = menuView->addAction(tr("&Issues"), this->m_DockValidationIssues, &QDockWidget::show);
         }
 
-        if (auto* menuHelp = menuBar()->addMenu(tr("&Help")))
+        if (auto* menuHelp = this->menuBar()->addMenu(tr("&Help")))
         {
             [[maybe_unused]] auto* actionMenuHelpAbout = menuHelp->addAction(tr("&About"), this, &MainWindow::ShowAbout);
         }
@@ -126,54 +191,80 @@ namespace ptvapp::forms
 
     void MainWindow::CreateControls() noexcept
     {
-        this->m_DockValidationIssues = new QDockWidget(tr("Issues"), this);
+        if (this->m_DockValidationIssues = new QDockWidget(tr("Issues"), this))
         {
             //auto* container = new QWidget();
-            this->m_ValidationIssuesView = new QTreeView(this);
-            this->m_ValidationIssuesModel = new models::ValidationModel(this);
-            this->m_ValidationIssuesView->setModel(this->m_ValidationIssuesModel);
-            this->m_ValidationIssuesView->header()->setStretchLastSection(true);
-            this->m_DockValidationIssues->setWidget(this->m_ValidationIssuesView);
+            if (this->m_ValidationIssuesView = new QTreeView(this))
+            {
+                this->m_ValidationIssuesModel = new models::ValidationModel(this);
+                this->m_ValidationIssuesModel->Add("Ready");
+
+                this->m_ValidationIssuesView->setModel(this->m_ValidationIssuesModel);
+                this->m_ValidationIssuesView->header()->setStretchLastSection(true);
+
+                this->m_DockValidationIssues->setWidget(this->m_ValidationIssuesView);
+            }
 
             this->addDockWidget(Qt::BottomDockWidgetArea, this->m_DockValidationIssues);
-
-            this->m_ValidationIssuesModel->Add("Ready");
         }
 
-        this->m_DockTypeList = new QDockWidget(tr("Type List"), this);
-        this->m_TypeListModel = new ptvapp::models::TypeListModel(this);
+        if (this->m_DockTypeList = new QDockWidget(tr("Type List"), this))
+        {
+            if (this->m_TypeListModel = new ptvapp::models::TypeListModel(this))
+            {
+                if (this->m_TypeListModelProxy = new QSortFilterProxyModel(this))
+                {
+                    this->m_TypeListModelProxy->setSourceModel(this->m_TypeListModel);
+                }
+            }
 
-        this->m_TypeListModelProxy = new QSortFilterProxyModel(this);
-        this->m_TypeListModelProxy->setSourceModel(this->m_TypeListModel);
+            if (auto* container = new QWidget())
+            {
+                this->m_TypeListView = new QTreeView(container);
+                this->m_TypeListView->setModel(this->m_TypeListModelProxy);
+                this->m_TypeListView->setEditTriggers(QAbstractItemView::NoEditTriggers);
 
-        auto* container = new QWidget();
+                this->m_TypeListViewFilter = new QLineEdit(container);
 
-        this->m_TypeListView = new QTreeView(container);
-        this->m_TypeListView->setModel(this->m_TypeListModelProxy);
-        this->m_TypeListView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+                if (auto* vbox = new QVBoxLayout())
+                {
+                    if (auto* hbox = new QHBoxLayout())
+                    {
+                        hbox->addWidget(this->m_TypeListViewFilter, 0);
 
-        auto* filter = new QLineEdit(container);
+                        this->m_TypeListAnalyzeButton = new QPushButton("Analyze");
 
-        auto* vbox = new QVBoxLayout();
-        vbox->addWidget(filter, 0);
-        vbox->addWidget(this->m_TypeListView, 1);
-        vbox->setContentsMargins({});
+                        hbox->addWidget(this->m_TypeListAnalyzeButton);
 
-        container->setLayout(vbox);
+                        vbox->addLayout(hbox);
+                    }
 
-        this->m_DockTypeList->setWidget(container);
+                    vbox->addWidget(this->m_TypeListView, 1);
+                    vbox->setContentsMargins({});
 
-        this->addDockWidget(Qt::LeftDockWidgetArea, this->m_DockTypeList);
+                    container->setLayout(vbox);
+                }
 
-        this->m_TypeModel = new ptvapp::models::TypeDescriptorModel(this);
-        this->m_TypeView = new QTreeView(this);
-        this->m_TypeView->setModel(this->m_TypeModel);
-        this->m_TypeView->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
+                this->m_DockTypeList->setWidget(container);
+            }
 
-        this->setCentralWidget(this->m_TypeView);
+            this->addDockWidget(Qt::LeftDockWidgetArea, this->m_DockTypeList);
+        }
+
+        if (this->m_TypeModel = new ptvapp::models::TypeDescriptorModel(this))
+        {
+            if (this->m_TypeView = new QTreeView(this))
+            {
+                this->m_TypeView->setModel(this->m_TypeModel);
+                this->m_TypeView->header()->setSectionResizeMode(QHeaderView::ResizeToContents);
+            }
+
+            this->setCentralWidget(this->m_TypeView);
+        }
+
 
         connect(
-            filter,
+            this->m_TypeListViewFilter,
             &QLineEdit::textChanged,
             [&](const QString& value)
             {
@@ -198,9 +289,9 @@ namespace ptvapp::forms
                 {
                     if (auto const underlying = this->m_TypeListModelProxy->mapToSource(current); underlying.isValid())
                     {
-                        if (auto const* type = static_cast<const LibPdb::Type*>(underlying.internalPointer()); type != nullptr)
+                        if (auto const* type = static_cast<const ptvapp::models::TypeListElement*>(underlying.internalPointer()); type != nullptr)
                         {
-                            if (auto descriptor = this->m_PdbFile->GetDescriptor(*type); descriptor != nullptr)
+                            if (auto descriptor = this->m_PdbFile->GetDescriptor(*type->GetType()); descriptor != nullptr)
                             {
                                 this->m_TypeModel->FromDescriptor(
                                     std::move(descriptor)

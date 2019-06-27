@@ -1,4 +1,5 @@
 #include <Models/ModelTypeList.hxx>
+#include <LibPtv/TypeMemberInherited.hxx>
 
 namespace ptvapp::models
 {
@@ -7,11 +8,13 @@ namespace ptvapp::models
     ) noexcept
         : QAbstractItemModel{ parent }
         , m_Types{}
+        , m_IsAnalyzed{ false }
     {
     }
 
     TypeListModel::~TypeListModel() noexcept
     {
+        qDeleteAll(this->m_Types);
     }
 
     void TypeListModel::Setup(
@@ -24,10 +27,69 @@ namespace ptvapp::models
 
         for (auto const& type : types)
         {
-            m_Types.push_back(TypeListElement{ type.get() });
+            m_Types.push_back(new TypeListElement{ type.get() });
         }
 
         this->endResetModel();
+    }
+
+    static std::optional<uint64_t> GetPaddingForType(
+        LibPdb::Session& session,
+        const LibPdb::Type& type
+        ) noexcept
+    {
+        if (auto descriptor = session.GetDescriptor(type); descriptor != nullptr)
+        {
+            if (auto const& members = descriptor->GetMembers(); !members.empty())
+            {
+                auto const& analyzedType = members.front();
+                if (analyzedType->GetMemberType() == LibPdb::MemberType::Inherited)
+                {
+                    auto const& actualType = static_cast<const LibPdb::TypeMemberInherited&>(*analyzedType);
+
+                    if (auto const padding = actualType.GetPadding(); padding != 0)
+                    {
+                        return padding;
+                    }
+                }
+            }
+        }
+
+        return {};
+    }
+
+    void TypeListModel::DoAnalyze(
+        LibPdb::Session& session,
+        std::function<void(const QString& type, int32_t current, int32_t total)> callback
+    ) noexcept
+    {
+        if (!this->m_IsAnalyzed)
+        {
+            this->m_IsAnalyzed = true;
+
+            auto const count = this->m_Types.count();
+            int current{};
+
+            for (auto& type : this->m_Types)
+            {
+                callback(
+                    type->GetName(),
+                    current,
+                    count
+                );
+
+                ++current;
+
+                type->SetPadding(
+                    std::move(
+                        GetPaddingForType(
+                            session,
+                            *type->GetType()
+                        )
+                    )
+                );
+            }
+        }
     }
 
     int TypeListModel::rowCount(
@@ -88,7 +150,7 @@ namespace ptvapp::models
         {
             if (role == Qt::DisplayRole)
             {
-                auto const item = static_cast<const LibPdb::Type*>(index.internalPointer());
+                auto const* item = static_cast<TypeListElement*>(index.internalPointer());
 
                 if (item != nullptr)
                 {
@@ -96,7 +158,16 @@ namespace ptvapp::models
                     {
                     case 0:
                         {
-                            return QString::fromStdWString(std::wstring{ item->GetName() });
+                            return item->GetName();
+                        }
+                    case 1:
+                        {
+                            if (auto const& padding = item->GetPadding(); padding.has_value())
+                            {
+                                return padding.value();
+                            }
+
+                            break;
                         }
                     default:
                         {
@@ -117,7 +188,7 @@ namespace ptvapp::models
         return this->createIndex(
             row,
             column,
-            const_cast<LibPdb::Type*>(this->m_Types[row].GetType())
+            this->m_Types[row]
         );
     }
 

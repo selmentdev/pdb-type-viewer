@@ -101,8 +101,16 @@ namespace LibPdb::MsDia
     ) noexcept
     {
         ULONGLONG result{};
-        HRESULT hr = symbol->get_length(&result);
-        (void)hr;
+        [[maybe_unused]] HRESULT hr = symbol->get_length(&result);
+        return static_cast<uint64_t>(result);
+    }
+
+    uint64_t GetSizeInUdt(
+        Microsoft::WRL::ComPtr<IDiaSymbol> symbol
+    ) noexcept
+    {
+        DWORD result{};
+        [[maybe_unused]] HRESULT hr = symbol->get_sizeInUdt(&result);
         return static_cast<uint64_t>(result);
     }
 
@@ -112,6 +120,16 @@ namespace LibPdb::MsDia
     {
         LONG result{};
         symbol->get_offset(&result);
+
+        return static_cast<int64_t>(result);
+    }
+
+    int64_t GetOffsetInUdt(
+        Microsoft::WRL::ComPtr<IDiaSymbol> symbol
+    ) noexcept
+    {
+        DWORD result{};
+        symbol->get_offsetInUdt(&result);
 
         return static_cast<int64_t>(result);
     }
@@ -857,8 +875,8 @@ namespace LibPdb::Detail
             //
 
             auto const type_name = MsDia::GetName(symbol);
-            auto const offset = MsDia::GetOffset(symbol);
-            auto const size = MsDia::GetLength(symbol);
+            auto const offset = MsDia::GetOffsetInUdt(symbol);
+            auto const size = MsDia::GetSizeInUdt(symbol);
 
 
             //

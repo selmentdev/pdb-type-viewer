@@ -27,9 +27,21 @@ namespace ptvapp::models
             return this->m_Type;
         }
 
+        QString GetName() const noexcept
+        {
+            return QString::fromStdWString(
+                std::wstring{ this->m_Type->GetName() }
+            );
+        }
+
         const std::optional<uint64_t>& GetPadding() const noexcept
         {
             return this->m_Padding;
+        }
+
+        void SetPadding(std::optional<uint64_t>&& value) noexcept
+        {
+            this->m_Padding = std::move(value);
         }
     };
 }
@@ -40,7 +52,8 @@ namespace ptvapp::models
     {
         Q_OBJECT
     private:
-        QList<TypeListElement> m_Types;
+        QList<TypeListElement*> m_Types;
+        bool m_IsAnalyzed;
 
     public:
         explicit TypeListModel(
@@ -52,6 +65,17 @@ namespace ptvapp::models
         void Setup(
             const std::vector<std::unique_ptr<LibPdb::Type>>& types
         ) noexcept;
+
+    public:
+        void DoAnalyze(
+            LibPdb::Session& session,
+            std::function<void(const QString& type, int32_t current, int32_t total)> callback
+        ) noexcept;
+
+        bool IsAnalyzed() const noexcept
+        {
+            return this->m_IsAnalyzed;
+        }
 
     public:
         virtual int rowCount(
