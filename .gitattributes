@@ -24,10 +24,5 @@
 *.gso   binary
 *.hso   binary
 *.cso   binary
-*.dds   binary
-*.e3d   binary
 *.png   binary
 *.ico   binary
-tools/premake/linux-x86_64/premake5 binary
-tools/premake/premake5.exe binary
-tools/premake/linux-aarch64/premake5 binary
