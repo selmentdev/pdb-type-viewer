@@ -99,7 +99,7 @@ VALUES
 
 namespace DbgDb::Lib
 {
-    class SqliteSession : public ISession
+    class SqliteSession final : public ISession
     {
     private:
         ::sqlite3* m_Connection;
@@ -110,12 +110,24 @@ namespace DbgDb::Lib
         {
         }
 
-        virtual ~SqliteSession() noexcept
+        virtual ~SqliteSession() noexcept override final
         {
             if (m_Connection != nullptr)
             {
                 ::sqlite3_close(m_Connection);
             }
+        }
+
+        virtual Result RemoveType(const char* name) noexcept override final
+        {
+            (void)name;
+            return Result::NotImplemented;
+        }
+
+        virtual Result RemoveProvider(const char* name) noexcept override final
+        {
+            (void)name;
+            return Result::NotImplemented;
         }
     };
 

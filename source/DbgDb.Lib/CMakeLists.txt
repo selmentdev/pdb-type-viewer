@@ -7,6 +7,7 @@ target_include_directories(DbgDb.Lib PUBLIC
     )
 
 target_link_libraries(DbgDb.Lib PRIVATE sqlite3)
+target_compile_options(DbgDb.Lib PRIVATE /WX /W4)
 
 generate_export_header(DbgDb.Lib BASE_NAME DbgDbLib)
 

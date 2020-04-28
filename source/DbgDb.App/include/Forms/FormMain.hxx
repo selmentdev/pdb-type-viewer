@@ -22,5 +22,10 @@ namespace DbgDb::App::Forms
 
     private slots:
         void ShowAbout() noexcept;
+
+    private:
+        void CreateComponents() noexcept;
+        void CreateStatusBar() noexcept;
+        void CreateActions() noexcept;
     };
 }

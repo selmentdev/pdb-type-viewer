@@ -10,9 +10,11 @@ namespace DbgDb::Lib
         case Result::Success:
             return "Success";
         case Result::FailedCreateSchema:
-            return "FailedCreateSchema";
+            return "Failed to create schema";
         case Result::FailedCreateDatabase:
-            return "FailedCreateDatabase";
+            return "Failed to create database";
+        case Result::NotImplemented:
+            return "Not Implemented";
         }
 
         return "<<unknown>>";

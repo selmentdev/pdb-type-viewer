@@ -10,6 +10,7 @@ target_include_directories(DbgDb.Lib.Pdb PUBLIC
     "include"
     "${CMAKE_CURRENT_BINARY_DIR}"
     )
+target_compile_options(DbgDb.Lib.Pdb PRIVATE /WX /W4)
 
 generate_export_header(DbgDb.Lib.Pdb BASE_NAME DbgDbLibPdb)
 

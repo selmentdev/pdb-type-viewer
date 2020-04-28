@@ -8,6 +8,7 @@
 
 #include <DbgDb.Lib.SourceProvider.hxx>
 #include <DbgDb.Lib.Session.hxx>
+#include <QLibrary>
 
 int main(int argc, char* argv[])
 {
@@ -18,19 +19,19 @@ int main(int argc, char* argv[])
     QCoreApplication::setApplicationName("Pdb Type Viewer");
     QCoreApplication::setApplicationVersion(QT_VERSION_STR);
 
-    DbgDb::Lib::CreateProvider();
+    std::vector<std::unique_ptr<QLibrary>> plugins{};
+
+    plugins.push_back(std::make_unique<QLibrary>("DbgDb.Lib.Elf"));
+    plugins.push_back(std::make_unique<QLibrary>("DbgDb.Lib.Pdb"));
+
+    for (auto const& plugin : plugins)
+    {
+        using PluginFunction = void(void);
+        PluginFunction* func = reinterpret_cast<PluginFunction*>(plugin->resolve("InitializePlugin"));
+        func();
+    }
 
     DbgDb::App::Forms::FormMain form_main{};
-
-    if (argc == 2)
-    {
-        QString path{ argv[1] };
-        DbgDb::Lib::Result result{};
-        auto session = DbgDb::Lib::CreateSession(argv[1], result);
-
-        QMessageBox::information(nullptr, "Create Session", DbgDb::Lib::ToString(result), QMessageBox::Ok);
-        //main_window.LoadFromPath(path);
-    }
 
     form_main.show();
 

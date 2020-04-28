@@ -8,6 +8,4 @@ namespace DbgDb::Lib
     public:
         virtual ~ISourceProvider() noexcept {}
     };
-
-    DBGDBLIB_EXPORT ISourceProvider* CreateProvider() noexcept;
 }

@@ -10,6 +10,7 @@ namespace DbgDb::Lib
         Success,
         FailedCreateSchema,
         FailedCreateDatabase,
+        NotImplemented,
     };
 
     DBGDBLIB_EXPORT const char* ToString(Result result) noexcept;

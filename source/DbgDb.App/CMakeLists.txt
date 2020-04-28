@@ -1,9 +1,11 @@
 add_executable(DbgDb.App ${GUI_TYPE}
- "source/Main.cxx"
- "source/Forms/FormMain.cxx"
- "include/Forms/FormMain.hxx"
- "resources/app.qrc"
- )
+  "source/Main.cxx"
+  "source/Forms/FormMain.cxx"
+  "include/Forms/FormMain.hxx"
+  "resources/app.qrc"
+  "source/Forms/FormAboutBox.cxx"
+  "include/Forms/FormAboutBox.hxx"
+  )
 
 target_link_libraries(DbgDb.App PRIVATE Qt5::Widgets)
 target_link_libraries(DbgDb.App PRIVATE DbgDb.Lib)
