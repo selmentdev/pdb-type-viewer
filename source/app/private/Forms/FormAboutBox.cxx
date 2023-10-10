@@ -1,6 +1,8 @@
 #include <Forms/FormAboutBox.hxx>
 #include <QtWidgets>
 
+#include "PdbTypeViewer/Version.hxx"
+
 namespace ptvapp::forms
 {
     AboutBox::AboutBox(QWidget* parent) noexcept
@@ -48,6 +50,16 @@ namespace ptvapp::forms
                 link->setOpenExternalLinks(true);
 
                 layout->addWidget(link);
+            }
+
+
+            //
+            // Add Application version information.
+            //
+
+            if (auto* version = new QLabel(QString{ "PDB Type Viewer %1" }.arg(PTV_PROJECT_VERSION)))
+            {
+                layout->addWidget(version);
             }
 
 

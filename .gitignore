@@ -42,3 +42,5 @@ Makefile
 *.a.recipe
 *.so
 *.so.recipe
+out/
+cmake-build-*/

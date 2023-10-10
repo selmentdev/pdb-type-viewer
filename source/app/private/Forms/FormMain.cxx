@@ -5,11 +5,13 @@
 #include <Models/ModelValidationList.hxx>
 #include <QtWidgets>
 
+#include "PdbTypeViewer/Version.hxx"
+
 namespace ptvapp::forms
 {
     MainWindow::MainWindow() noexcept
     {
-        this->setWindowTitle(tr("PDB Type Viewer"));
+        this->setWindowTitle(QString{ "PDB Type Viewer %1" }.arg(PTV_PROJECT_VERSION));
         this->setUnifiedTitleAndToolBarOnMac(true);
 
         this->CreateControls();
@@ -132,6 +134,12 @@ namespace ptvapp::forms
             this->setWindowTitle(
                 tr("PDB Type Viewer") + QString{ " - %1" }.arg(path)
             );
+
+            QMessageBox::information(
+                this,
+                "Loading PDB",
+                QString{ "PDB file %1 loaded successfully" }.arg(path)
+            );
         }
         else
         {
@@ -139,7 +147,7 @@ namespace ptvapp::forms
 
             QMessageBox::warning(
                 this,
-                "Loading PDB failure",
+                "Loading PDB",
                 QString{ "Cannot load %1 file" }.arg(path)
             );
         }
@@ -271,11 +279,10 @@ namespace ptvapp::forms
             &QLineEdit::textChanged,
             [&](const QString& value)
             {
-                this->m_TypeListModelProxy->setFilterRegExp(
-                    QRegExp(
+                this->m_TypeListModelProxy->setFilterRegularExpression(
+                    QRegularExpression(
                         value,
-                        Qt::CaseInsensitive,
-                        QRegExp::RegExp
+                        QRegularExpression::CaseInsensitiveOption
                     )
                 );
             }

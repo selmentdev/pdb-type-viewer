@@ -1,4 +1,3 @@
-#define PTV_BUILDING_LIB
 #define NOMINMAX
 
 #include <wrl/client.h>
@@ -454,23 +453,28 @@ namespace LibPdb::Detail
         {
             Microsoft::WRL::ComPtr<IDiaDataSource> source{};
 
-            if (FAILED(NoOleCoCreate(
-                CLSID_DiaSourceAlt,
-                IID_IDiaDataSource,
-                (void**)source.GetAddressOf()
-            )))
+            if (FAILED(::CoCreateInstance(
+                CLSID_DiaSource, nullptr, CLSCTX_INPROC_SERVER, IID_IDiaDataSource,
+                reinterpret_cast<void**>(source.GetAddressOf()))))
             {
-                //
-                // Failed to load msdia from registry.
-
-                if (FAILED(NoRegCoCreate(
-                    L"msdia140.dll",
+                if (FAILED(NoOleCoCreate(
                     CLSID_DiaSourceAlt,
                     IID_IDiaDataSource,
                     (void**)source.GetAddressOf()
                 )))
                 {
-                    return false;
+                    //
+                    // Failed to load msdia from registry.
+
+                    if (FAILED(NoRegCoCreate(
+                        L"msdia140.dll",
+                        CLSID_DiaSourceAlt,
+                        IID_IDiaDataSource,
+                        (void**)source.GetAddressOf()
+                    )))
+                    {
+                        return false;
+                    }
                 }
             }
 
