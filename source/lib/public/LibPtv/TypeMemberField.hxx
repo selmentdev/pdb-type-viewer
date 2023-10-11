@@ -3,6 +3,7 @@
 #include <string_view>
 #include <string>
 #include <optional>
+#include <utility>
 
 namespace LibPdb
 {
@@ -37,34 +38,32 @@ namespace LibPdb
             , m_Name{ name }
             , m_TypeName{ type_name }
             , m_Kind{ kind }
-            , m_Bits{ bits }
+            , m_Bits{std::move( bits )}
         {
         }
 
-        virtual ~TypeMemberField() noexcept = default;
-
     public:
-        virtual MemberType GetMemberType() const noexcept override
+        [[nodiscard]] MemberType GetMemberType() const noexcept override
         {
             return MemberType::Field;
         }
 
-        std::wstring_view GetName() const noexcept
+        [[nodiscard]] std::wstring_view GetName() const noexcept
         {
             return { m_Name };
         }
 
-        std::wstring_view GetTypeName() const noexcept
+        [[nodiscard]] std::wstring_view GetTypeName() const noexcept
         {
             return m_TypeName;
         }
 
-        MemberKind GetKind() const noexcept
+        [[nodiscard]] MemberKind GetKind() const noexcept
         {
             return m_Kind;
         }
 
-        std::optional<std::pair<uint64_t, uint64_t>> GetBits() const noexcept
+        [[nodiscard]] std::optional<std::pair<uint64_t, uint64_t>> GetBits() const noexcept
         {
             return m_Bits;
         }

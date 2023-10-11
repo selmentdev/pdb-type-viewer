@@ -12,6 +12,7 @@ qt_add_executable(
         "private/Forms/FormAboutBox.cxx"
         "private/Forms/FormMain.cxx"
         "resources/app.qrc"
+        "resources/resources.rc"
 )
 
 target_include_directories(

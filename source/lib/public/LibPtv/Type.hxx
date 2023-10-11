@@ -9,8 +9,6 @@ namespace LibPdb
     public:
         virtual ~Type() noexcept = default;
 
-        virtual std::wstring_view GetName() const noexcept = 0;
-
-        virtual std::unique_ptr<Type> Clone() const noexcept = 0;
+        [[nodiscard]] virtual std::wstring_view GetName() const noexcept = 0;
     };
 }

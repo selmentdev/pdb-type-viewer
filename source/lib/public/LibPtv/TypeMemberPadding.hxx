@@ -18,10 +18,10 @@ namespace LibPdb
         {
         }
 
-        virtual ~TypeMemberPadding() noexcept = default;
+        ~TypeMemberPadding() noexcept override = default;
 
     public:
-        virtual MemberType GetMemberType() const noexcept override
+        [[nodiscard]] MemberType GetMemberType() const noexcept override
         {
             return MemberType::Padding;
         }
@@ -31,7 +31,7 @@ namespace LibPdb
             m_IsSpurious = value;
         }
 
-        bool IsSpurious() const noexcept
+        [[nodiscard]] bool IsSpurious() const noexcept
         {
             return m_IsSpurious;
         }

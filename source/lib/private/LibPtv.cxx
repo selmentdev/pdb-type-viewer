@@ -17,7 +17,7 @@
 namespace LibPdb::MsDia
 {
     Microsoft::WRL::ComPtr<IDiaSymbol> Next(
-        Microsoft::WRL::ComPtr<IDiaEnumSymbols> enumerator
+        Microsoft::WRL::ComPtr<IDiaEnumSymbols> const& enumerator
     ) noexcept
     {
         Microsoft::WRL::ComPtr<IDiaSymbol> result{};
@@ -33,17 +33,17 @@ namespace LibPdb::MsDia
     }
 
     Microsoft::WRL::ComPtr<IDiaEnumSymbols> FindChildren(
-        Microsoft::WRL::ComPtr<IDiaSymbol> symbol,
-        enum SymTagEnum symtag
+        Microsoft::WRL::ComPtr<IDiaSymbol> const& symbol,
+        enum SymTagEnum tag
     ) noexcept
     {
         Microsoft::WRL::ComPtr<IDiaEnumSymbols> result{};
 
         HRESULT hr = symbol->findChildrenEx(
-            symtag,
-            nullptr,
-            nsNone,
-            result.GetAddressOf()
+                tag,
+                nullptr,
+                nsNone,
+                result.GetAddressOf()
         );
 
         (void)hr;
@@ -52,7 +52,7 @@ namespace LibPdb::MsDia
     }
 
     int32_t GetCount(
-        Microsoft::WRL::ComPtr<IDiaEnumSymbols> enumerator
+        Microsoft::WRL::ComPtr<IDiaEnumSymbols> const& enumerator
     ) noexcept
     {
         LONG result{};
@@ -61,7 +61,7 @@ namespace LibPdb::MsDia
     }
 
     std::wstring_view GetName(
-        Microsoft::WRL::ComPtr<IDiaSymbol> symbol
+        Microsoft::WRL::ComPtr<IDiaSymbol> const& symbol
     ) noexcept
     {
         BSTR result{};
@@ -76,7 +76,7 @@ namespace LibPdb::MsDia
     }
 
     uint32_t GetRank(
-        Microsoft::WRL::ComPtr<IDiaSymbol> symbol
+        Microsoft::WRL::ComPtr<IDiaSymbol> const& symbol
     ) noexcept
     {
         DWORD result{};
@@ -86,7 +86,7 @@ namespace LibPdb::MsDia
     }
 
     uint32_t GetCount(
-        Microsoft::WRL::ComPtr<IDiaSymbol> symbol
+        Microsoft::WRL::ComPtr<IDiaSymbol> const& symbol
     ) noexcept
     {
         DWORD result{};
@@ -96,7 +96,7 @@ namespace LibPdb::MsDia
     }
 
     uint64_t GetLength(
-        Microsoft::WRL::ComPtr<IDiaSymbol> symbol
+        Microsoft::WRL::ComPtr<IDiaSymbol> const& symbol
     ) noexcept
     {
         ULONGLONG result{};
@@ -105,7 +105,7 @@ namespace LibPdb::MsDia
     }
 
     uint64_t GetSizeInUdt(
-        Microsoft::WRL::ComPtr<IDiaSymbol> symbol
+        Microsoft::WRL::ComPtr<IDiaSymbol> const& symbol
     ) noexcept
     {
         DWORD result{};
@@ -114,7 +114,7 @@ namespace LibPdb::MsDia
     }
 
     int64_t GetOffset(
-        Microsoft::WRL::ComPtr<IDiaSymbol> symbol
+        Microsoft::WRL::ComPtr<IDiaSymbol> const& symbol
     ) noexcept
     {
         LONG result{};
@@ -123,18 +123,21 @@ namespace LibPdb::MsDia
         return static_cast<int64_t>(result);
     }
 
-    int64_t GetOffsetInUdt(
-        Microsoft::WRL::ComPtr<IDiaSymbol> symbol
+    std::optional<int64_t> GetOffsetInUdt(
+        Microsoft::WRL::ComPtr<IDiaSymbol> const& symbol
     ) noexcept
     {
         DWORD result{};
-        symbol->get_offsetInUdt(&result);
+        if (SUCCEEDED(symbol->get_offsetInUdt(&result)))
+        {
+            return static_cast<int64_t>(result);
+        }
 
-        return static_cast<int64_t>(result);
+        return std::nullopt;
     }
 
     uint32_t GetBitPosition(
-        Microsoft::WRL::ComPtr<IDiaSymbol> symbol
+        Microsoft::WRL::ComPtr<IDiaSymbol> const& symbol
     ) noexcept
     {
         DWORD result{};
@@ -144,7 +147,7 @@ namespace LibPdb::MsDia
     }
 
     bool IsConst(
-        Microsoft::WRL::ComPtr<IDiaSymbol> type
+        Microsoft::WRL::ComPtr<IDiaSymbol> const& type
     ) noexcept
     {
         BOOL result{};
@@ -154,7 +157,7 @@ namespace LibPdb::MsDia
     }
 
     bool IsVolatile(
-        Microsoft::WRL::ComPtr<IDiaSymbol> type
+        Microsoft::WRL::ComPtr<IDiaSymbol> const& type
     ) noexcept
     {
         BOOL result{};
@@ -164,7 +167,7 @@ namespace LibPdb::MsDia
     }
 
     bool IsUnaligned(
-        Microsoft::WRL::ComPtr<IDiaSymbol> type
+        Microsoft::WRL::ComPtr<IDiaSymbol> const& type
     ) noexcept
     {
         BOOL result{};
@@ -174,7 +177,7 @@ namespace LibPdb::MsDia
     }
 
     bool IsReference(
-        Microsoft::WRL::ComPtr<IDiaSymbol> type
+        Microsoft::WRL::ComPtr<IDiaSymbol> const& type
     ) noexcept
     {
         BOOL result{};
@@ -184,7 +187,7 @@ namespace LibPdb::MsDia
     }
 
     UdtKind GetUdtKind(
-        Microsoft::WRL::ComPtr<IDiaSymbol> symbol
+        Microsoft::WRL::ComPtr<IDiaSymbol> const& symbol
     ) noexcept
     {
         DWORD result{};
@@ -194,7 +197,7 @@ namespace LibPdb::MsDia
     }
 
     BasicType GetBaseType(
-        Microsoft::WRL::ComPtr<IDiaSymbol> symbol
+        Microsoft::WRL::ComPtr<IDiaSymbol> const& symbol
     ) noexcept
     {
         DWORD result{};
@@ -203,7 +206,7 @@ namespace LibPdb::MsDia
         return static_cast<BasicType>(result);
     }
     std::wstring GetBaseTypeName(
-        Microsoft::WRL::ComPtr<IDiaSymbol> symbol
+        Microsoft::WRL::ComPtr<IDiaSymbol> const& symbol
     ) noexcept
     {
         auto type = MsDia::GetBaseType(symbol);
@@ -238,6 +241,9 @@ namespace LibPdb::MsDia
                     break;
                 case 8:
                     result += L"int64";
+                    break;
+
+                default:
                     break;
                 }
 
@@ -298,7 +304,7 @@ namespace LibPdb::MsDia
     }
 
     Microsoft::WRL::ComPtr<IDiaSymbol> GetType(
-        Microsoft::WRL::ComPtr<IDiaSymbol> symbol
+        Microsoft::WRL::ComPtr<IDiaSymbol> const& symbol
     ) noexcept
     {
         Microsoft::WRL::ComPtr<IDiaSymbol> result{};
@@ -309,7 +315,7 @@ namespace LibPdb::MsDia
     }
 
     std::optional<enum SymTagEnum> GetSymTag(
-        Microsoft::WRL::ComPtr<IDiaSymbol> symbol
+        Microsoft::WRL::ComPtr<IDiaSymbol> const& symbol
     ) noexcept
     {
         DWORD result{};
@@ -323,7 +329,7 @@ namespace LibPdb::MsDia
     }
 
     std::optional<bool> IsStatic(
-        Microsoft::WRL::ComPtr<IDiaSymbol> symbol
+        Microsoft::WRL::ComPtr<IDiaSymbol> const& symbol
     ) noexcept
     {
         BOOL result{};
@@ -337,7 +343,7 @@ namespace LibPdb::MsDia
     }
 
     std::optional<LocationType> GetLocation(
-        Microsoft::WRL::ComPtr<IDiaSymbol> symbol
+        Microsoft::WRL::ComPtr<IDiaSymbol> const& symbol
     ) noexcept
     {
         DWORD result{};
@@ -403,31 +409,22 @@ namespace LibPdb::Detail
         Microsoft::WRL::ComPtr<IDiaSymbol> m_symbol;
 
     public:
-        TypeImpl(
-            Microsoft::WRL::ComPtr<IDiaSymbol> symbol
+        explicit TypeImpl(
+            Microsoft::WRL::ComPtr<IDiaSymbol> const& symbol
         ) noexcept
             : m_Name{ MsDia::GetName(symbol) }
             , m_symbol{ symbol }
         {
         }
 
-        virtual ~TypeImpl() noexcept = default;
-
-        virtual std::wstring_view GetName() const noexcept override
+        [[nodiscard]] std::wstring_view GetName() const noexcept override
         {
             return m_Name;
         }
 
-        const Microsoft::WRL::ComPtr<IDiaSymbol>& GetSymbol() const noexcept
+        [[nodiscard]] const Microsoft::WRL::ComPtr<IDiaSymbol>& GetSymbol() const noexcept
         {
             return m_symbol;
-        }
-
-        virtual std::unique_ptr<Type> Clone() const noexcept override
-        {
-            return std::make_unique<TypeImpl>(
-                this->m_symbol
-            );
         }
     };
 }
@@ -444,9 +441,8 @@ namespace LibPdb::Detail
 
     public:
         SessionImpl() noexcept = default;
-        virtual ~SessionImpl() noexcept = default;
 
-        virtual bool Load(
+        bool Load(
             std::wstring_view path,
             std::function<void(int32_t current, int32_t total, std::wstring_view name)> progress
         ) noexcept override
@@ -558,13 +554,13 @@ namespace LibPdb::Detail
         }
 
 
-        virtual const std::vector<std::unique_ptr<Type>>& GetTypes() const noexcept override
+        [[nodiscard]] const std::vector<std::unique_ptr<Type>>& GetTypes() const noexcept override
         {
             return m_Types;
         }
 
         static std::wstring GetFunctionTypeName(
-            Microsoft::WRL::ComPtr<IDiaSymbol> symbol
+            Microsoft::WRL::ComPtr<IDiaSymbol> const& symbol
         ) noexcept
         {
             std::wstring result{};
@@ -613,14 +609,14 @@ namespace LibPdb::Detail
         }
 
         static std::wstring GetBound(
-            Microsoft::WRL::ComPtr<IDiaSymbol> symbol
+            Microsoft::WRL::ComPtr<IDiaSymbol> const&
         ) noexcept
         {
             return L"<bound>";
         }
 
         static std::wstring GetArrayName(
-            Microsoft::WRL::ComPtr<IDiaSymbol> symbol
+            Microsoft::WRL::ComPtr<IDiaSymbol> const& symbol
         ) noexcept
         {
             std::wstring result{};
@@ -686,8 +682,6 @@ namespace LibPdb::Detail
                     auto const array_length = MsDia::GetLength(symbol);
                     auto const type_length = MsDia::GetLength(type);
 
-                    done = true;
-
                     auto count = array_length;
 
                     if (type_length != 0)
@@ -699,18 +693,13 @@ namespace LibPdb::Detail
                     result += std::to_wstring(count);
                     result += L"]";
                 }
-
-                if (!done)
-                {
-                    result = L"<array>[]";
-                }
             }
 
             return result;
         }
 
         static std::wstring GetTypeName(
-            Microsoft::WRL::ComPtr<IDiaSymbol> symbol
+            Microsoft::WRL::ComPtr<IDiaSymbol> const& symbol
         ) noexcept
         {
             std::wstring result{};
@@ -798,6 +787,11 @@ namespace LibPdb::Detail
                                 result += L"interface ";
                                 break;
                             }
+                        case UdtTaggedUnion:
+                            {
+                                result += L"tagged_union ";
+                            }
+                            break;
                         }
 
                         result += MsDia::GetName(symbol);
@@ -815,6 +809,9 @@ namespace LibPdb::Detail
                         result = MsDia::GetBaseTypeName(symbol);
                         break;
                     }
+
+                default:
+                    break;
                 }
             }
 
@@ -822,17 +819,17 @@ namespace LibPdb::Detail
         }
 
         static std::optional<bool> IsValidMember(
-            Microsoft::WRL::ComPtr<IDiaSymbol> symbol
+            Microsoft::WRL::ComPtr<IDiaSymbol> const& symbol
         ) noexcept
         {
-            auto symtag = MsDia::GetSymTag(symbol);
+            auto tag = MsDia::GetSymTag(symbol);
 
-            if (!symtag.has_value())
+            if (!tag.has_value())
             {
                 return std::nullopt;
             }
 
-            switch (symtag.value())
+            switch (tag.value())
             {
             case SymTagFunction:
             case SymTagFriend:
@@ -841,6 +838,9 @@ namespace LibPdb::Detail
             case SymTagBaseType:
             case SymTagTypedef:
                 return false;
+
+            default:
+                break;
             }
 
             auto is_static = MsDia::IsStatic(symbol);
@@ -871,7 +871,7 @@ namespace LibPdb::Detail
         }
 
         static std::unique_ptr<TypeMemberInherited> CreateMemberInherited(
-            Microsoft::WRL::ComPtr<IDiaSymbol> symbol
+            Microsoft::WRL::ComPtr<IDiaSymbol> const& symbol
         ) noexcept
         {
             //
@@ -879,6 +879,7 @@ namespace LibPdb::Detail
             //
 
             auto const type_name = MsDia::GetName(symbol);
+            // TODO: Verify this.
             auto const offset = MsDia::GetOffsetInUdt(symbol);
             auto const size = MsDia::GetSizeInUdt(symbol);
 
@@ -924,7 +925,7 @@ namespace LibPdb::Detail
             for (auto const& current : symbols)
             {
                 //
-                // Compute highest padding value.
+                // Compute the highest padding value.
 
                 highest_ending = std::max(highest_ending, current->GetNextOffset());
 
@@ -944,7 +945,7 @@ namespace LibPdb::Detail
 
 
                 //
-                // Try find symbol with closest padding value.
+                // Try to find symbol with the closest padding value.
                 //
 
                 auto it = std::min_element(
@@ -1048,13 +1049,13 @@ namespace LibPdb::Detail
                     auto const& first = symbols[i];
                     if (first->GetMemberType() == MemberType::Field)
                     {
-                        auto const& field = static_cast<TypeMemberField&>(*first);
+                        auto const& field = static_cast<TypeMemberField&>(*first); // NOLINT(*-pro-type-static-cast-downcast)
 
                         auto& second = symbols[i + 1];
 
                         if (second->GetMemberType() == MemberType::Padding)
                         {
-                            auto& padding = static_cast<LibPdb::TypeMemberPadding&>(*second);
+                            auto& padding = static_cast<LibPdb::TypeMemberPadding&>(*second); // NOLINT(*-pro-type-static-cast-downcast)
 
                             if (field.GetOffset() == padding.GetOffset() &&
                                 field.GetSize() == 0 &&
@@ -1084,13 +1085,13 @@ namespace LibPdb::Detail
                 {
                 case LibPdb::MemberType::Padding:
                     {
-                        auto const& padding = static_cast<LibPdb::TypeMemberPadding const&>(*it);
+                        auto const& padding = static_cast<LibPdb::TypeMemberPadding const&>(*it); // NOLINT(*-pro-type-static-cast-downcast)
                         total_padding += padding.GetSize();
                         break;
                     }
                 case LibPdb::MemberType::Inherited:
                     {
-                        auto const& inherited= static_cast<LibPdb::TypeMemberInherited const&>(*it);
+                        auto const& inherited= static_cast<LibPdb::TypeMemberInherited const&>(*it); // NOLINT(*-pro-type-static-cast-downcast)
                         total_padding += inherited.GetPadding();
                         break;
                     }
@@ -1111,55 +1112,17 @@ namespace LibPdb::Detail
         }
 
         static MemberKind GetFieldKind(
-            Microsoft::WRL::ComPtr<IDiaSymbol> symbol
+            Microsoft::WRL::ComPtr<IDiaSymbol> const& symbol
         ) noexcept
         {
-            auto const symtag = MsDia::GetSymTag(symbol);
+            auto const tag = MsDia::GetSymTag(symbol);
 
-            switch (symtag.value_or(SymTagNull))
+            switch (tag.value_or(SymTagNull))
             {
-            case SymTagNull:
-            case SymTagExe:
-            case SymTagCompiland:
-            case SymTagCompilandDetails:
-            case SymTagCompilandEnv:
-            case SymTagFunction:
-            case SymTagBlock:
-            case SymTagData:
-            case SymTagAnnotation:
-            case SymTagLabel:
-            case SymTagPublicSymbol:
-            case SymTagFunctionType:
-            case SymTagBaseType:
-            case SymTagTypedef:
-            case SymTagBaseClass:
-            case SymTagFriend:
-            case SymTagFunctionArgType:
-            case SymTagFuncDebugStart:
-            case SymTagFuncDebugEnd:
-            case SymTagUsingNamespace:
-            case SymTagCustom:
-            case SymTagThunk:
-            case SymTagCustomType:
-            case SymTagManagedType:
-            case SymTagDimension:
-            case SymTagCallSite:
-            case SymTagInlineSite:
-            case SymTagBaseInterface:
-            case SymTagVectorType:
-            case SymTagMatrixType:
-            case SymTagHLSLType:
-            case SymTagCaller:
-            case SymTagCallee:
-            case SymTagExport:
-            case SymTagHeapAllocationSite:
-            case SymTagCoffGroup:
-            case SymTagInlinee:
-            case SymTagMax:
-                return MemberKind::Unknown;
             case SymTagUDT:
             case SymTagEnum:
                 return MemberKind::Value;
+
             case SymTagPointerType:
                 if (MsDia::IsReference(symbol))
                 {
@@ -1169,9 +1132,9 @@ namespace LibPdb::Detail
                 {
                     if (auto const type = MsDia::GetType(symbol); type != nullptr)
                     {
-                        if (auto const type_symtag = MsDia::GetSymTag(type); type_symtag.has_value())
+                        if (auto const type_tag = MsDia::GetSymTag(type); type_tag.has_value())
                         {
-                            switch (*type_symtag)
+                            switch (*type_tag)
                             {
                             case SymTagVTable:
                             case SymTagVTableShape:
@@ -1190,16 +1153,20 @@ namespace LibPdb::Detail
                 }
             case SymTagArrayType:
                 return MemberKind::Array;
+
             case SymTagVTableShape:
             case SymTagVTable:
                 return MemberKind::VTable;
+
+            default:
+                break;
             }
 
             return MemberKind::Unknown;
         }
 
         static std::unique_ptr<TypeMemberField> CreateMemberField(
-            Microsoft::WRL::ComPtr<IDiaSymbol> symbol
+            Microsoft::WRL::ComPtr<IDiaSymbol> const& symbol
         ) noexcept
         {
             auto type = MsDia::GetType(symbol);
@@ -1232,17 +1199,17 @@ namespace LibPdb::Detail
         }
 
         static std::unique_ptr<BaseTypeMember> Create(
-            Microsoft::WRL::ComPtr<IDiaSymbol> symbol
+            Microsoft::WRL::ComPtr<IDiaSymbol> const& symbol
         ) noexcept
         {
-            auto symtag = MsDia::GetSymTag(symbol);
+            auto tag = MsDia::GetSymTag(symbol);
 
-            if (!symtag.has_value())
+            if (!tag.has_value())
             {
                 return nullptr;
             }
 
-            if (symtag == SymTagBaseClass)
+            if (tag == SymTagBaseClass)
             {
                 return CreateMemberInherited(symbol);
             }
@@ -1254,11 +1221,11 @@ namespace LibPdb::Detail
             return nullptr;
         }
 
-        virtual std::unique_ptr<TypeDescriptor> GetDescriptor(
+        [[nodiscard]] std::unique_ptr<TypeDescriptor> GetDescriptor(
             const Type& type
         ) const noexcept override
         {
-            auto const& typed = static_cast<LibPdb::Detail::TypeImpl const&>(type);
+            auto const& typed = static_cast<LibPdb::Detail::TypeImpl const&>(type); // NOLINT(*-pro-type-static-cast-downcast)
 
             std::vector<std::unique_ptr<BaseTypeMember>> members{};
 

@@ -29,19 +29,19 @@ namespace LibPdb
         virtual ~BaseTypeMember() noexcept = default;
 
     public:
-        virtual MemberType GetMemberType() const noexcept = 0;
+        [[nodiscard]] virtual MemberType GetMemberType() const noexcept = 0;
 
-        uint64_t GetSize() const noexcept
+        [[nodiscard]] uint64_t GetSize() const noexcept
         {
             return m_Size;
         }
 
-        uint64_t GetOffset() const noexcept
+        [[nodiscard]] uint64_t GetOffset() const noexcept
         {
             return m_Offset;
         }
 
-        uint64_t GetNextOffset() const noexcept
+        [[nodiscard]] uint64_t GetNextOffset() const noexcept
         {
             return m_Offset + m_Size;
         }

@@ -19,9 +19,9 @@ namespace LibPdb
         ) noexcept = 0;
 
     public:
-        virtual const std::vector<std::unique_ptr<Type>>& GetTypes() const noexcept = 0;
+        [[nodiscard]] virtual const std::vector<std::unique_ptr<Type>>& GetTypes() const noexcept = 0;
 
-        virtual std::unique_ptr<TypeDescriptor> GetDescriptor(
+        [[nodiscard]] virtual std::unique_ptr<TypeDescriptor> GetDescriptor(
             const Type& type
         ) const noexcept = 0;
     };
