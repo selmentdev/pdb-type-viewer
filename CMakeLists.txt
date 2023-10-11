@@ -30,4 +30,5 @@ find_package(Qt6 COMPONENTS Widgets REQUIRED)
 
 qt_standard_project_setup()
 
-add_subdirectory(source)
+add_subdirectory("source")
+add_subdirectory("thirdparty")
