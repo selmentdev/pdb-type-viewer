@@ -1,0 +1,3 @@
+[submodule "thirdparty/raw_pdb"]
+	path = thirdparty/raw_pdb
+	url = https://github.com/MolecularMatters/raw_pdb.git
