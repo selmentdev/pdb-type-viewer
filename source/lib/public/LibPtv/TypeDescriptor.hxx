@@ -11,14 +11,14 @@ namespace LibPdb
         std::vector<std::unique_ptr<BaseTypeMember>> m_Members;
 
     public:
-        TypeDescriptor(
+        explicit TypeDescriptor(
             std::vector<std::unique_ptr<BaseTypeMember>>&& members
         ) noexcept
             : m_Members{ std::move(members) }
         {
         }
 
-        const std::vector<std::unique_ptr<BaseTypeMember>>& GetMembers() const noexcept
+        [[nodiscard]] const std::vector<std::unique_ptr<BaseTypeMember>>& GetMembers() const noexcept
         {
             return m_Members;
         }

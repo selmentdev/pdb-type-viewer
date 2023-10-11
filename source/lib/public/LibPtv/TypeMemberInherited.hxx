@@ -28,25 +28,23 @@ namespace LibPdb
         {
         }
 
-        virtual ~TypeMemberInherited() noexcept = default;
-
     public:
-        virtual MemberType GetMemberType() const noexcept override
+        [[nodiscard]] MemberType GetMemberType() const noexcept override
         {
             return MemberType::Inherited;
         }
 
-        virtual const std::vector<std::unique_ptr<BaseTypeMember>>& GetMembers() const noexcept
+        [[nodiscard]] virtual const std::vector<std::unique_ptr<BaseTypeMember>>& GetMembers() const noexcept
         {
             return m_Members;
         }
 
-        std::wstring_view GetName() const noexcept
+        [[nodiscard]] std::wstring_view GetName() const noexcept
         {
             return m_Name;
         }
 
-        uint64_t GetPadding() const noexcept
+        [[nodiscard]] uint64_t GetPadding() const noexcept
         {
             return m_Padding;
         }
